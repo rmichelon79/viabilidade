@@ -204,7 +204,7 @@ export function calcScenario(p, unidades, sc, nome) {
     vpl, tir, exposicao, mesExposicao,
     mesLanc, mesEntr, totalM,
     fluxo, fluxoAcum,
-    recLiqMensal, custos, disb,
+    recLiqMensal, custos, disb, jurosMensal, amortMensal,
   }
 }
 

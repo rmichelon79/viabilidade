@@ -1,6 +1,7 @@
 import { getState } from '../store.js'
 import { calcAll } from '../calc.js'
 import { exportJSON } from '../save.js'
+import { exportFluxoXLS } from '../xlsexport.js'
 
 const SC = ['otimista', 'base', 'pessimista']
 const LABELS = { otimista: 'Otimista', base: 'Base', pessimista: 'Pessimista' }
@@ -17,14 +18,16 @@ export function render(container) {
     <p class="page-sub">Comparativo de cenários — Viabilidade econômica</p>
   </div>
   <div class="no-print" style="display:flex;gap:8px;align-items:center;margin-top:4px">
+    <button class="btn-sm btn-export" id="btn-export-xls"  style="display:flex;align-items:center;gap:6px">📊 Exportar XLS</button>
     <button class="btn-sm btn-export" id="btn-export-json" style="display:flex;align-items:center;gap:6px">⬇ Exportar JSON</button>
     <button class="btn-sm btn-export" id="btn-print"       style="display:flex;align-items:center;gap:6px">🖨 Imprimir / PDF</button>
   </div>
 </div>
 <div id="results-root"></div>
 `
+  document.getElementById('btn-export-xls')?.addEventListener('click',  () => exportFluxoXLS(getState(), calcAll(getState())))
   document.getElementById('btn-export-json')?.addEventListener('click', () => exportJSON(getState()))
-  document.getElementById('btn-print')?.addEventListener('click', () => window.print())
+  document.getElementById('btn-print')?.addEventListener('click',       () => window.print())
   renderResults(container)
 }
 
