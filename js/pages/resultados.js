@@ -84,10 +84,10 @@ function renderResults(container) {
       ${row('Margem s/ VGV Bruto (%)',       SC.map(k => pct(res[k].margemVGV)))}
       ${row('Margem s/ Receita Líquida (%)', SC.map(k => pct(res[k].margemRec)))}
       ${section('FINANCIAMENTO BANCÁRIO')}
-      ${row('(+) Desembolsos Recebidos (R$)', SC.map(k => brl(res[k].desembolsosTotal)))}
-      ${row('(−) Amortização + Juros (R$)',   SC.map(k => brlN(res[k].amortTotal + res[k].jurosTotais)))}
-      ${row('Juros Totais Pagos (R$)',         SC.map(k => brlN(res[k].jurosTotais)))}
-      ${row('Custo Líquido do Financiamento (R$)', SC.map(k => brlC(res[k].custoLiqFinanc)))}
+      ${row('(+) Desembolsos Recebidos (R$)',      SC.map(k => brl(res[k].desembolsosTotal)))}
+      ${row('(−) Juros Totais Pagos (R$)',         SC.map(k => brlN(res[k].jurosTotais)))}
+      ${row('(−) Amortização Total (R$)',           SC.map(k => brlN(res[k].amortTotal)))}
+      ${rowHL('Custo Líquido do Financiamento (R$)', SC.map(k => brlC(res[k].custoLiqFinanc)))}
       ${section('RESULTADO FINAL')}
       ${rowHL('Resultado Final do Projeto (R$)', SC.map(k => brlC(res[k].resultFinal)))}
       ${row('Margem Final s/ VGV Ajustado (%)',  SC.map(k => pct(res[k].margemAjustado)))}
