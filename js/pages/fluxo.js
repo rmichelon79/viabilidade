@@ -64,15 +64,17 @@ function renderTabs(container) {
 
 // Cost item definitions (label + key in custoDetalhe)
 const COST_ITEMS = [
-  { label: 'Terreno',       key: 'cTerreno'   },
-  { label: 'ITBI',          key: 'cITBI'      },
-  { label: 'IPTU',          key: 'cIPTU'      },
-  { label: 'Proj./Alv.',    key: 'cProjAlv'   },
-  { label: 'Registros',     key: 'cRegistros' },
-  { label: 'Seguros',       key: 'cSeguros'   },
-  { label: 'Obra',          key: 'cObra'      },
-  { label: 'Vendas',        key: 'cVendas'    },
-  { label: 'ADM',           key: 'cAdm'       },
+  { label: 'Terreno',      key: 'cTerreno'   },
+  { label: 'ITBI',         key: 'cITBI'      },
+  { label: 'IPTU',         key: 'cIPTU'      },
+  { label: 'Proj./Alv.',   key: 'cProjAlv'   },
+  { label: 'Registros',    key: 'cRegistros' },
+  { label: 'Seguros',      key: 'cSeguros'   },
+  { label: 'Obra',         key: 'cObra'      },
+  { label: 'Comissões',    key: 'cComissoes' },
+  { label: 'Gest. Com.',   key: 'cGestCom'   },
+  { label: 'Marketing',    key: 'cMarketing' },
+  { label: 'ADM',          key: 'cAdm'       },
 ]
 
 function renderTable(container) {

@@ -103,7 +103,9 @@ export function calcScenario(p, unidades, sc, nome) {
   const cRegistros = z()  // C06 Registros e incorporação
   const cSeguros   = z()  // C07 Seguros
   const cObra      = z()  // C08+C09 Custo direto + indireto
-  const cVendas    = z()  // C10+C11+C12 Comissões + Gest.Com. + Marketing
+  const cComissoes = z()  // C10 Comissões de venda
+  const cGestCom   = z()  // C11 Gestão comercial
+  const cMarketing = z()  // C12 Marketing
   const cAdm       = z()  // C13 Gestão ADM
 
   const curve = getCurve(p.prazoObra)
@@ -141,9 +143,16 @@ export function calcScenario(p, unidades, sc, nome) {
     if (m <= totalM) cObra[m] = (custoDireto + custoIndir) * curve[t]
   }
 
-  // C10+C11+C12 Comissões + Gestão Comercial + Marketing: proportional to absorption
-  const despVendas = vgvBruto * (d(p.comissoes) + d(p.gestaoComercial) + d(p.marketing))
-  for (let t = 0; t <= totalM; t++) cVendas[t] = despVendas * (abs[t] || 0)
+  // C10 Comissões, C11 Gestão Comercial, C12 Marketing: proporcionais à absorção
+  const totComissoes = vgvBruto * d(p.comissoes)
+  const totGestCom   = vgvBruto * d(p.gestaoComercial)
+  const totMarketing = vgvBruto * d(p.marketing)
+  for (let t = 0; t <= totalM; t++) {
+    const f = abs[t] || 0
+    cComissoes[t] = totComissoes * f
+    cGestCom[t]   = totGestCom   * f
+    cMarketing[t] = totMarketing * f
+  }
 
   // C13 Gestão ADM: spread evenly over all months
   const gestaoTotal = vgvBruto * d(p.gestaoAdm)
@@ -151,7 +160,7 @@ export function calcScenario(p, unidades, sc, nome) {
 
   // Soma total de custos
   const custos = new Array(totalM + 1).fill(0)
-  const _itens = [cTerreno, cITBI, cIPTU, cProjAlv, cRegistros, cSeguros, cObra, cVendas, cAdm]
+  const _itens = [cTerreno, cITBI, cIPTU, cProjAlv, cRegistros, cSeguros, cObra, cComissoes, cGestCom, cMarketing, cAdm]
   for (let t = 0; t <= totalM; t++)
     custos[t] = _itens.reduce((s, arr) => s + arr[t], 0)
 
@@ -233,7 +242,7 @@ export function calcScenario(p, unidades, sc, nome) {
     mesLanc, mesEntr, totalM,
     fluxo, fluxoAcum,
     recLiqMensal, custos, disb, jurosMensal, amortMensal,
-    custoDetalhe: { cTerreno, cITBI, cIPTU, cProjAlv, cRegistros, cSeguros, cObra, cVendas, cAdm },
+    custoDetalhe: { cTerreno, cITBI, cIPTU, cProjAlv, cRegistros, cSeguros, cObra, cComissoes, cGestCom, cMarketing, cAdm },
   }
 }
 
