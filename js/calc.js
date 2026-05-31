@@ -200,7 +200,9 @@ export function calcScenario(p, unidades, sc, nome) {
   const disb = new Array(totalM + 1).fill(0)
   for (let t = 0; t < p.prazoObra; t++) {
     const m = mesInicioFinanc + t
-    if (m <= totalM) disb[m] += volumeFinanc * curve[t]
+    // Desembolsos limitados ao mês de entrega: banco não libera financiamento
+    // de construção após a obra estar concluída
+    if (m <= totalM && m <= mesEntr) disb[m] += volumeFinanc * curve[t]
   }
 
   let saldo = 0
