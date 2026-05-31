@@ -71,21 +71,22 @@ export function render(container) {
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
             <div>
               <div style="font-size:0.7rem;color:#64748b;margin-bottom:3px">Mês de início</div>
-              <input class="fi w80" type="number" min="0" data-sc="${k}" data-qp="mesInicio" style="width:100%">
+              <input class="fi" type="number" min="0" step="1" data-sc="${k}" data-qp="mesInicio" style="width:100%">
             </div>
             <div>
-              <div style="font-size:0.7rem;color:#64748b;margin-bottom:3px">Un. no lançamento</div>
-              <input class="fi w80" type="number" min="0" step="1" data-sc="${k}" data-qp="unLanc" value="1" style="width:100%">
+              <div style="font-size:0.7rem;color:#64748b;margin-bottom:3px">Período de lançamento (meses)</div>
+              <input class="fi" type="number" min="1" step="1" data-sc="${k}" data-qp="durLanc" value="3" style="width:100%">
             </div>
             <div>
-              <div style="font-size:0.7rem;color:#64748b;margin-bottom:3px">Un. por período</div>
-              <input class="fi w80" type="number" min="1" step="1" data-sc="${k}" data-qp="unPer" value="1" style="width:100%">
+              <div style="font-size:0.7rem;color:#64748b;margin-bottom:3px">Vel. lançamento (% VGV/mês)</div>
+              <input class="fi" type="number" min="0" step="0.1" data-sc="${k}" data-qp="velLanc" value="5" style="width:100%">
             </div>
             <div>
-              <div style="font-size:0.7rem;color:#64748b;margin-bottom:3px">Intervalo (meses)</div>
-              <input class="fi w80" type="number" min="1" step="1" data-sc="${k}" data-qp="cadencia" value="2" style="width:100%">
+              <div style="font-size:0.7rem;color:#64748b;margin-bottom:3px">Vel. após lançamento (% VGV/mês)</div>
+              <input class="fi" type="number" min="0" step="0.1" data-sc="${k}" data-qp="velPost" value="2" style="width:100%">
             </div>
           </div>
+          <div id="qp-preview-${k}" style="font-size:0.72rem;color:#64748b;margin-bottom:8px;min-height:16px"></div>
           <button class="btn-add" style="width:100%;font-size:0.78rem;padding:6px" data-sc="${k}" data-action="quick-gen">↺ Gerar curva</button>
         </div>
       </details>
@@ -148,8 +149,17 @@ function populateQuickGen(container) {
   const mesLanc = (getState().premissas.mesesDesenvolvimento || 0) | 0
   KEYS.forEach(k => {
     const inp = container.querySelector(`[data-sc="${k}"][data-qp="mesInicio"]`)
-    if (inp && !inp.value) inp.value = mesLanc
+    if (inp) inp.value = mesLanc
   })
+}
+
+function updateQpPreview(k, abs, mesInicio, durLanc) {
+  const el = document.getElementById(`qp-preview-${k}`)
+  if (!el) return
+  const total = abs.reduce((s, v) => s + v, 0) * 100
+  const mesesTotal = abs.reduce((s, v, i) => v > 0 ? i : s, 0) - mesInicio + 1
+  el.textContent = `Estimativa: ${total.toFixed(1)}% absorvido em ~${mesesTotal} meses a partir do mês ${mesInicio}`
+  el.style.color = Math.abs(total - 100) < 0.5 ? '#16a34a' : '#d97706'
 }
 
 function updateChavesField(container, k) {
@@ -192,33 +202,41 @@ function bindAbsorcaoActions(container) {
   container.addEventListener('click', e => {
     if (e.target.dataset.action === 'quick-gen') {
       const k = e.target.dataset.sc
-      const panel = e.target.closest('[data-sc]')
+      const panel = e.target.closest('.quick-gen-panel')
       const qp = name => parseFloat(panel?.querySelector(`[data-qp="${name}"]`)?.value) || 0
       const mesInicio = Math.max(0, Math.round(qp('mesInicio')))
-      const unLanc    = Math.max(0, Math.round(qp('unLanc')))
-      const unPer     = Math.max(1, Math.round(qp('unPer')))
-      const cadencia  = Math.max(1, Math.round(qp('cadencia')))
+      const durLanc   = Math.max(1, Math.round(qp('durLanc')))
+      const velLanc   = Math.max(0, qp('velLanc')) / 100   // fraction per month
+      const velPost   = Math.max(0, qp('velPost')) / 100
 
-      // Total units from price table
-      const totalUn = getState().unidades.reduce((s, u) => s + (u.qtd || 1), 0)
-      if (totalUn <= 0) { alert('Cadastre unidades na Tabela de Preços primeiro.'); return }
+      if (velLanc === 0 && velPost === 0) { alert('Informe pelo menos uma velocidade de vendas maior que zero.'); return }
 
       const abs = new Array(120).fill(0)
-      let placed = 0
+      let acum = 0
 
-      // Lançamento: first month(s)
-      const lancPlaced = Math.min(unLanc, totalUn)
-      if (lancPlaced > 0) { abs[mesInicio] = lancPlaced / totalUn; placed += lancPlaced }
-
-      // Vendas subsequentes
-      let m = mesInicio + cadencia
-      while (placed < totalUn && m < 120) {
-        const n = Math.min(unPer, totalUn - placed)
-        abs[m] = n / totalUn
-        placed += n
-        m += cadencia
+      // Período de lançamento
+      for (let t = 0; t < durLanc && acum < 1 - 1e-9 && mesInicio + t < 120; t++) {
+        const frac = Math.min(velLanc, 1 - acum)
+        abs[mesInicio + t] = frac
+        acum += frac
       }
 
+      // Velocidade pós-lançamento
+      if (velPost > 0) {
+        let m = mesInicio + durLanc
+        while (acum < 1 - 1e-9 && m < 120) {
+          const frac = Math.min(velPost, 1 - acum)
+          abs[m] = frac
+          acum += frac
+          m++
+        }
+      }
+
+      // Snap remaining rounding error onto last non-zero month
+      const last = abs.reduce((li, v, i) => v > 0 ? i : li, -1)
+      if (last >= 0 && Math.abs(1 - acum) < 0.001) abs[last] += (1 - acum)
+
+      updateQpPreview(k, abs, mesInicio, durLanc)
       setAbsorcao(k, abs)
       renderAbsorcao()
       renderAbsChart()
