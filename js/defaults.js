@@ -12,6 +12,7 @@ export const DEFAULT_PREMISSAS = {
   data: '2026-03-27',
   mesesDesenvolvimento: 6,
   prazoObra: 48,
+  duracaoLancamento: 3,    // meses do período de lançamento (para distribuição de marketing)
   impostoRET: 5,         // % (UI input as %)
   inccMensal: 0.5,       // % a.m.
   permutaFinanceira: 17.0625, // % VGV

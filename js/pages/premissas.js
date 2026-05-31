@@ -37,6 +37,10 @@ export function render(container) {
     <label class="fl">Prazo de obra</label>
     <div class="fi-unit"><input class="fi w80" type="number" min="1" data-key="prazoObra"><span class="unit">m</span></div>
   </div>
+  <div class="field-row">
+    <label class="fl">Duração do período de lançamento</label>
+    <div class="fi-unit"><input class="fi w80" type="number" min="1" data-key="duracaoLancamento"><span class="unit">m</span></div>
+  </div>
   <div class="divider"></div>
   <div class="field-row calc-row">
     <label class="fl">Mês do lançamento (calculado)</label>

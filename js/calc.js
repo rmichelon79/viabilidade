@@ -143,15 +143,36 @@ export function calcScenario(p, unidades, sc, nome) {
     if (m <= totalM) cObra[m] = (custoDireto + custoIndir) * curve[t]
   }
 
-  // C10 Comissões, C11 Gestão Comercial, C12 Marketing: proporcionais à absorção
+  // C10 Comissões e C11 Gestão Comercial: proporcionais à absorção
   const totComissoes = vgvBruto * d(p.comissoes)
   const totGestCom   = vgvBruto * d(p.gestaoComercial)
-  const totMarketing = vgvBruto * d(p.marketing)
   for (let t = 0; t <= totalM; t++) {
     const f = abs[t] || 0
     cComissoes[t] = totComissoes * f
     cGestCom[t]   = totGestCom   * f
-    cMarketing[t] = totMarketing * f
+  }
+
+  // C12 Marketing: 50% nos meses do período de lançamento (uniform),
+  //                50% nos meses restantes (proporcional à absorção)
+  const totMarketing   = vgvBruto * d(p.marketing)
+  const durLancPrem    = Math.max(1, (p.duracaoLancamento || 1) | 0)
+  const mktLanc        = totMarketing * 0.5
+  const mktPost        = totMarketing * 0.5
+  // 50% distribuído uniformemente no período de lançamento
+  for (let t = 0; t < durLancPrem; t++) {
+    const m = mesLanc + t
+    if (m <= totalM) cMarketing[m] += mktLanc / durLancPrem
+  }
+  // 50% distribuído proporcionalmente à absorção nos meses fora do lançamento
+  const lancFim   = mesLanc + durLancPrem
+  const absRestante = abs.slice(lancFim).reduce((s, v) => s + v, 0)
+  if (absRestante > 1e-9) {
+    for (let t = lancFim; t <= totalM; t++)
+      cMarketing[t] += mktPost * (abs[t] || 0) / absRestante
+  } else {
+    // Fallback: se não há absorção pós-lançamento, distribui uniformemente
+    for (let t = lancFim; t <= totalM; t++)
+      cMarketing[t] += mktPost / Math.max(1, totalM - lancFim + 1)
   }
 
   // C13 Gestão ADM: spread evenly over all months
