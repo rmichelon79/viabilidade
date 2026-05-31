@@ -1,3 +1,4 @@
+import { initAuth, logout } from './auth.js'
 import { render as renderPremissas } from './pages/premissas.js'
 import { render as renderTabela } from './pages/tabela.js'
 import { render as renderCenarios, destroy as destroyCenarios } from './pages/cenarios.js'
@@ -125,7 +126,15 @@ function init() {
   navigate(PAGES[hash] ? hash : 'premissas')
 }
 
-document.addEventListener('DOMContentLoaded', init)
+document.addEventListener('DOMContentLoaded', () => {
+  initAuth(() => {
+    init()
+    wireModalClose()
+    document.getElementById('btn-logout')?.addEventListener('click', () => {
+      if (confirm('Encerrar sessão?')) logout()
+    })
+  })
+})
 
 // ─── MODAL HELPERS ───────────────────────────────────────────
 function showModal(title, bodyHTML, buttons) {
@@ -147,12 +156,12 @@ function closeModal() {
   document.getElementById('modal-overlay').classList.add('hidden')
 }
 
-// Close on overlay click
-document.addEventListener('DOMContentLoaded', () => {
+// Close modal on overlay click (wired after auth succeeds, inside init())
+function wireModalClose() {
   document.getElementById('modal-overlay')?.addEventListener('click', e => {
     if (e.target === document.getElementById('modal-overlay')) closeModal()
   })
-})
+}
 
 function showOpenModal() {
   const saved = getSaved()
