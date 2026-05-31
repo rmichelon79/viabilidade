@@ -71,8 +71,8 @@ function renderResults(container) {
     </thead>
     <tbody>
       ${section('RECEITAS')}
+      ${row('VGV Ajustado (R$)',            SC.map(k => brl(res[k].vgvAjustado)))}
       ${row('VGV Bruto Base (R$)',          SC.map(k => brl(res[k].vgvBruto)))}
-      ${row('VGV Disponível Ajustado (R$)', SC.map(k => brl(res[k].vgvAjustado)))}
       ${row('Receita Bruta Recebida (R$)',  SC.map(k => brl(res[k].receitaBruta)))}
       ${row('(−) Permuta Financeira (R$)',  SC.map(k => brlN(res[k].permutaTotal)))}
       ${row('(−) Impostos sobre Receita (R$)', SC.map(k => brlN(res[k].impostosTotal)))}
@@ -90,7 +90,8 @@ function renderResults(container) {
       ${row('Custo Líquido do Financiamento (R$)', SC.map(k => brlC(res[k].custoLiqFinanc)))}
       ${section('RESULTADO FINAL')}
       ${rowHL('Resultado Final do Projeto (R$)', SC.map(k => brlC(res[k].resultFinal)))}
-      ${row('Margem Final s/ VGV (%)',           SC.map(k => pct(res[k].margemFinal)))}
+      ${row('Margem Final s/ VGV Ajustado (%)',  SC.map(k => pct(res[k].margemAjustado)))}
+      ${row('Margem Final s/ VGV Bruto (%)',     SC.map(k => pct(res[k].margemFinal)))}
       ${section('INDICADORES FINANCEIROS')}
       ${rowHL('VPL do Projeto (R$)',             SC.map(k => brlC(res[k].vpl)))}
       ${rowHL('TIR do Projeto (% a.a.)',         SC.map(k => pctHL(res[k].tir)))}
@@ -132,16 +133,17 @@ function kpiCard(k, r) {
 <div class="kpi-card" style="border-top:4px solid ${COLORS[k]}">
   <div class="kpi-scenario" style="color:${COLORS[k]}">${LABELS[k]}</div>
   <div class="kpi-block">
-    <div class="kpi-label">VGV Bruto</div>
-    <div class="kpi-value">${brlM(r.vgvBruto)}</div>
+    <div class="kpi-label">VGV Ajustado</div>
+    <div class="kpi-value">${brlM(r.vgvAjustado)}</div>
+    <div style="font-size:0.68rem;color:#94a3b8;margin-top:1px">Bruto: ${brlM(r.vgvBruto)}</div>
   </div>
   <div class="kpi-block">
     <div class="kpi-label">Resultado Final</div>
     <div class="kpi-value ${r.resultFinal >= 0 ? 'pos' : 'neg'}">${brlM(r.resultFinal)}</div>
   </div>
   <div class="kpi-block">
-    <div class="kpi-label">Margem s/ VGV</div>
-    <div class="kpi-value ${r.margemFinal >= 0 ? 'pos' : 'neg'}">${pct(r.margemFinal)}</div>
+    <div class="kpi-label">Margem s/ VGV Aj.</div>
+    <div class="kpi-value ${r.margemFinal >= 0 ? 'pos' : 'neg'}">${pct(r.margemAjustado !== undefined ? r.margemAjustado : r.margemFinal)}</div>
   </div>
   <div class="kpi-block">
     <div class="kpi-label">VPL</div>

@@ -95,50 +95,65 @@ export function calcScenario(p, unidades, sc, nome) {
   const recLiqMensal = recBruta.map(r => r * scale * (1 - perm - ret))
 
   // === CUSTOS MENSAIS ===
-  const custos = new Array(totalM + 1).fill(0)
-  const curve = getCurve(p.prazoObra)
+  const z = () => new Array(totalM + 1).fill(0)
+  const cTerreno   = z()  // C01 Aquisição terreno
+  const cITBI      = z()  // C02 ITBI e registro
+  const cIPTU      = z()  // C03 IPTU
+  const cProjAlv   = z()  // C04+C05 Projetos + Alvarás
+  const cRegistros = z()  // C06 Registros e incorporação
+  const cSeguros   = z()  // C07 Seguros
+  const cObra      = z()  // C08+C09 Custo direto + indireto
+  const cVendas    = z()  // C10+C11+C12 Comissões + Gest.Com. + Marketing
+  const cAdm       = z()  // C13 Gestão ADM
 
+  const curve = getCurve(p.prazoObra)
   const custoDireto = (p.custoM2 || 0) * (p.areaEquivalente || 0)
-  const custoIndir = custoDireto * d(p.custoIndireto)
+  const custoIndir  = custoDireto * d(p.custoIndireto)
+  const md = Math.max(1, mesLanc)
 
   // C01 Aquisição: month 0
-  custos[0] += vgvBruto * d(p.aquisicaoTerreno)
+  cTerreno[0] = vgvBruto * d(p.aquisicaoTerreno)
 
   // C02 ITBI: month 0
-  custos[0] += vgvBruto * d(p.itbiRegistro)
+  cITBI[0] = vgvBruto * d(p.itbiRegistro)
 
   // C03 IPTU: spread evenly over mesesDesenvolvimento
   const iptuTotal = vgvBruto * d(p.iptuAnual) * mesLanc / 12
-  const md = Math.max(1, mesLanc)
-  for (let t = 0; t < md; t++) custos[t] += iptuTotal / md
+  for (let t = 0; t < md; t++) cIPTU[t] = iptuTotal / md
 
   // C04–C05 Projetos + Alvarás: spread over pre-launch
   const devPreLanc = vgvBruto * (d(p.projetos) + d(p.alvaras))
-  for (let t = 0; t < md; t++) custos[t] += devPreLanc / md
+  for (let t = 0; t < md; t++) cProjAlv[t] = devPreLanc / md
 
   // C06 Registros e incorporação: at launch month
-  custos[mesLanc] += vgvBruto * d(p.registrosInc)
+  cRegistros[mesLanc] = vgvBruto * d(p.registrosInc)
 
   // C07 Seguros: spread over construction via S-curve
   const segurosTotal = vgvBruto * d(p.seguros)
   for (let t = 0; t < p.prazoObra; t++) {
     const m = mesLanc + t
-    if (m <= totalM) custos[m] += segurosTotal * curve[t]
+    if (m <= totalM) cSeguros[m] = segurosTotal * curve[t]
   }
 
   // C08+C09 Custo direto + indireto: S-curve over construction
   for (let t = 0; t < p.prazoObra; t++) {
     const m = mesLanc + t
-    if (m <= totalM) custos[m] += (custoDireto + custoIndir) * curve[t]
+    if (m <= totalM) cObra[m] = (custoDireto + custoIndir) * curve[t]
   }
 
-  // C10 Comissões + C11 Gestão Comercial + C12 Marketing: proportional to absorption
+  // C10+C11+C12 Comissões + Gestão Comercial + Marketing: proportional to absorption
   const despVendas = vgvBruto * (d(p.comissoes) + d(p.gestaoComercial) + d(p.marketing))
-  for (let t = 0; t <= totalM; t++) custos[t] += despVendas * (abs[t] || 0)
+  for (let t = 0; t <= totalM; t++) cVendas[t] = despVendas * (abs[t] || 0)
 
-  // C13 Gestão adm: spread evenly over all months
+  // C13 Gestão ADM: spread evenly over all months
   const gestaoTotal = vgvBruto * d(p.gestaoAdm)
-  for (let t = 0; t <= totalM; t++) custos[t] += gestaoTotal / (totalM + 1)
+  for (let t = 0; t <= totalM; t++) cAdm[t] = gestaoTotal / (totalM + 1)
+
+  // Soma total de custos
+  const custos = new Array(totalM + 1).fill(0)
+  const _itens = [cTerreno, cITBI, cIPTU, cProjAlv, cRegistros, cSeguros, cObra, cVendas, cAdm]
+  for (let t = 0; t <= totalM; t++)
+    custos[t] = _itens.reduce((s, arr) => s + arr[t], 0)
 
   const totalCustos = custos.reduce((a, b) => a + b, 0)
   const resultOp = recLiqTotal - totalCustos
@@ -201,10 +216,12 @@ export function calcScenario(p, unidades, sc, nome) {
     custoLiqFinanc,
     resultFinal,
     margemFinal: vgvBruto > 0 ? resultFinal / vgvBruto : 0,
+    margemAjustado: vgvAjustado > 0 ? resultFinal / vgvAjustado : 0,
     vpl, tir, exposicao, mesExposicao,
     mesLanc, mesEntr, totalM,
     fluxo, fluxoAcum,
     recLiqMensal, custos, disb, jurosMensal, amortMensal,
+    custoDetalhe: { cTerreno, cITBI, cIPTU, cProjAlv, cRegistros, cSeguros, cObra, cVendas, cAdm },
   }
 }
 
