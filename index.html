@@ -231,6 +231,15 @@
       position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
     }
 
+    /* ─── FLUXO TABLE ─── */
+    .fc-table th, .fc-table td { white-space: nowrap; }
+    .th-r { text-align: right; }
+    .td-r { text-align: right; font-variant-numeric: tabular-nums; padding-right: 14px; }
+    .neg-val { color: #dc2626; }
+    .fc-row-lanc td { background: #eff6ff !important; }
+    .fc-row-entr td { background: #fefce8 !important; }
+    .fc-table tbody tr:hover td { background: #f8fafc; }
+
     /* ─── PRINT ─── */
     @media print {
       #sidebar, .page-header .btn-export, .no-print { display: none !important; }
@@ -265,6 +274,9 @@
   <div class="nav-section" style="margin-top:8px">Análise</div>
   <a class="nav-link" data-page="resultados" href="#resultados">
     <span class="nav-icon">📈</span> Resultados
+  </a>
+  <a class="nav-link" data-page="fluxo" href="#fluxo">
+    <span class="nav-icon">📋</span> Fluxo de Caixa
   </a>
 
   <div class="sidebar-actions">

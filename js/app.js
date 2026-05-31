@@ -2,6 +2,7 @@ import { render as renderPremissas } from './pages/premissas.js'
 import { render as renderTabela } from './pages/tabela.js'
 import { render as renderCenarios, destroy as destroyCenarios } from './pages/cenarios.js'
 import { render as renderResultados, destroy as destroyResultados } from './pages/resultados.js'
+import { render as renderFluxo, update as updateFluxo } from './pages/fluxo.js'
 import { subscribe, resetAll, getState, loadState } from './store.js'
 import { getSaved, saveAnalysis, deleteAnalysis, exportJSON, importJSON } from './save.js'
 
@@ -10,6 +11,7 @@ const PAGES = {
   tabela:     { render: renderTabela,     destroy: null },
   cenarios:   { render: renderCenarios,   destroy: destroyCenarios },
   resultados: { render: renderResultados, destroy: destroyResultados },
+  fluxo:      { render: renderFluxo,      destroy: null },
 }
 
 let _currentPage = null
@@ -104,10 +106,11 @@ function init() {
     // Resultados page should re-render on state change if visible
     if (_currentPage === 'resultados') {
       const container = document.getElementById('main-content')
-      if (container) {
-        destroyResultados()
-        renderResultados(container)
-      }
+      if (container) { destroyResultados(); renderResultados(container) }
+    }
+    if (_currentPage === 'fluxo') {
+      const container = document.getElementById('main-content')
+      if (container) updateFluxo(container)
     }
   })
 
