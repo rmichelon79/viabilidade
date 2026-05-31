@@ -144,17 +144,19 @@ export function calcScenario(p, unidades, sc, nome) {
   }
 
   // C10 Comissões e C11 Gestão Comercial: proporcionais à absorção
-  const totComissoes = vgvBruto * d(p.comissoes)
-  const totGestCom   = vgvBruto * d(p.gestaoComercial)
+  // Base = vgvAjustado (incidem sobre o preço efetivo de venda, que varia por cenário)
+  const totComissoes = vgvAjustado * d(p.comissoes)
+  const totGestCom   = vgvAjustado * d(p.gestaoComercial)
   for (let t = 0; t <= totalM; t++) {
     const f = abs[t] || 0
     cComissoes[t] = totComissoes * f
     cGestCom[t]   = totGestCom   * f
   }
 
-  // C12 Marketing: 50% nos meses do período de lançamento (uniform),
-  //                50% nos meses restantes (proporcional à absorção)
-  const totMarketing   = vgvBruto * d(p.marketing)
+  // C12 Marketing: base = vgvAjustado (budget atrelado ao valor efetivo de vendas)
+  // 50% nos meses do período de lançamento (uniform),
+  // 50% nos meses restantes (proporcional à absorção)
+  const totMarketing   = vgvAjustado * d(p.marketing)
   const durLancPrem    = Math.max(1, (p.duracaoLancamento || 1) | 0)
   const mktLanc        = totMarketing * 0.5
   const mktPost        = totMarketing * 0.5
@@ -175,8 +177,8 @@ export function calcScenario(p, unidades, sc, nome) {
       cMarketing[t] += mktPost / Math.max(1, totalM - lancFim + 1)
   }
 
-  // C13 Gestão ADM: spread evenly over all months
-  const gestaoTotal = vgvBruto * d(p.gestaoAdm)
+  // C13 Gestão ADM: base = vgvAjustado (honorário sobre receita efetiva)
+  const gestaoTotal = vgvAjustado * d(p.gestaoAdm)
   for (let t = 0; t <= totalM; t++) cAdm[t] = gestaoTotal / (totalM + 1)
 
   // Soma total de custos
