@@ -150,6 +150,8 @@ function updateSummary(container, uns) {
 }
 
 function set(id, val) { const el = document.getElementById(id); if (el) el.textContent = val }
-function numBR(v) { return Math.round(v).toLocaleString('pt-BR') }
-function numBRM(v) { return (v/1e6).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + 'M' }
+function _intBR(n) { return String(Math.round(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.') }
+function _decBR(n, d) { const r=(Math.round(Math.abs(n)*Math.pow(10,d))/Math.pow(10,d)).toFixed(d); const [i,f='']= r.split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+(f||'').padEnd(d,'0') }
+function numBR(v)  { return _intBR(v) }
+function numBRM(v) { return _decBR(v/1e6, 2) + 'M' }
 function esc(s) { return String(s||'').replace(/"/g,'&quot;') }

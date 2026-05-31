@@ -266,7 +266,7 @@ function set(id, val) {
 }
 
 function brl(v) {
-  return 'R$ ' + Math.round(v).toLocaleString('pt-BR')
+  return 'R$ ' + String(Math.round(Math.abs(v))).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 }
 
 function fmt(v, dec) {

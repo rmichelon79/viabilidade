@@ -181,11 +181,7 @@ function kpi(label, val, signed) {
 </div>`
 }
 
-function brl(v) {
-  const abs = Math.abs(Math.round(v))
-  return (v < 0 ? '(' : '') + 'R$ ' + abs.toLocaleString('pt-BR') + (v < 0 ? ')' : '')
-}
-function brlM(v) {
-  const m = Math.abs(v / 1e6)
-  return (v < 0 ? '(' : '') + 'R$ ' + m.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + 'M' + (v < 0 ? ')' : '')
-}
+function _intBR(n) { return String(Math.round(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.') }
+function _decBR(n,d) { const r=(Math.round(Math.abs(n)*Math.pow(10,d))/Math.pow(10,d)).toFixed(d); const[i,f='']= r.split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+(f||'').padEnd(d,'0') }
+function brl(v)  { return (v < 0 ? '(' : '') + 'R$ ' + _intBR(v)         + (v < 0 ? ')' : '') }
+function brlM(v) { return (v < 0 ? '(' : '') + 'R$ ' + _decBR(v/1e6, 2) + 'M' + (v < 0 ? ')' : '') }

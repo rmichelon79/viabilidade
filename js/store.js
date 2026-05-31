@@ -33,8 +33,24 @@ function load() {
   } catch (_) {}
 }
 
+let _lsBlocked = false
+
 function persist() {
-  try { localStorage.setItem(KEY, JSON.stringify(_state)) } catch (_) {}
+  try {
+    localStorage.setItem(KEY, JSON.stringify(_state))
+    _lsBlocked = false
+  } catch (e) {
+    _lsBlocked = true
+    // Avisa o usuário que os dados não serão salvos (modo privado ou ITP do Safari)
+    let warn = document.getElementById('ls-warning')
+    if (!warn) {
+      warn = document.createElement('div')
+      warn.id = 'ls-warning'
+      warn.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#7f1d1d;color:#fca5a5;text-align:center;padding:8px 16px;font-size:0.8rem;z-index:9998;'
+      warn.innerHTML = '⚠️ <strong>Modo privado ou restrições do Safari detectadas</strong> — os dados <u>não serão salvos</u> ao fechar. Use "💾 Salvar análise" e "⬇ Exportar JSON" para preservar seu trabalho.'
+      document.body.appendChild(warn)
+    }
+  }
 }
 
 export function getState() { return _state }

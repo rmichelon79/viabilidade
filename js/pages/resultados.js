@@ -196,7 +196,7 @@ function renderChartAcum(res) {
         tooltip: {
           callbacks: {
             label: ctx => ctx.dataset.label
-              ? `${ctx.dataset.label}: R$ ${Math.round(ctx.raw).toLocaleString('pt-BR')}`
+              ? `${ctx.dataset.label}: R$ ${_intBR(ctx.raw)}`
               : null,
           },
         },
@@ -238,7 +238,7 @@ function renderChartMensal(r) {
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: { legend: { position: 'top' }, tooltip: {
-        callbacks: { label: ctx => `${ctx.dataset.label}: R$ ${Math.round(Math.abs(ctx.raw)).toLocaleString('pt-BR')}` }
+        callbacks: { label: ctx => `${ctx.dataset.label}: R$ ${_intBR(Math.abs(ctx.raw))}` }
       }},
       scales: {
         x: { stacked: false, title: { display: true, text: 'Mês' } },
@@ -254,6 +254,15 @@ export function destroy() {
   if (_chartMensal){ _chartMensal.destroy(); _chartMensal = null }
 }
 
+// ── Formatação robusta (sem toLocaleString) ───────────────────────────────────
+function _intBR(n) { return String(Math.round(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.') }
+function _decBR(n, d) {
+  if (d === 0) return _intBR(n)
+  const r = (Math.round(Math.abs(n) * Math.pow(10,d)) / Math.pow(10,d)).toFixed(d)
+  const [i, f = ''] = r.split('.')
+  return i.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + f.padEnd(d,'0')
+}
+
 // Helpers
 function section(label) {
   return `<tr><td colspan="4" style="background:#f1f5f9;font-weight:700;font-size:0.75rem;color:#475569;padding:6px 12px;letter-spacing:0.05em">${label}</td></tr>`
@@ -264,11 +273,11 @@ function row(label, vals) {
 function rowHL(label, vals) {
   return `<tr style="background:#f8fafc"><td><strong>${label}</strong></td>${vals.map(v => `<td><strong>${v}</strong></td>`).join('')}</tr>`
 }
-function brl(v)       { return 'R$ ' + Math.round(v).toLocaleString('pt-BR') }
-function brlN(v)      { return '(R$ ' + Math.round(v).toLocaleString('pt-BR') + ')' }
+function brl(v)       { return 'R$ ' + _intBR(v) }
+function brlN(v)      { return '(R$ ' + _intBR(v) + ')' }
 function brlC(v)      { return v >= 0 ? brl(v) : brlN(-v) }
-function brlM(v)      { const m = v/1e6; return (v<0?'(R$ ':'R$ ') + Math.abs(m).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) + 'M' + (v<0?')':'') }
-function pct(v, d=1)  { return (v*100).toFixed(d).replace('.', ',') + '%' }
+function brlM(v)      { const s = _decBR(v/1e6, 2); return v < 0 ? `(R$ ${s}M)` : `R$ ${s}M` }
+function pct(v, d=1)  { return _decBR(v*100, d) + '%' }
 function pctHL(v)     { return isFinite(v) && v > 0 ? pct(v, 1) : '–' }
-function fmtM(v)      { const m = Math.abs(v)/1e6; return (v<0?'-':'') + m.toFixed(1).replace('.',',') + 'M' }
+function fmtM(v)      { return (v<0?'-':'') + _decBR(Math.abs(v)/1e6, 1) + 'M' }
 function esc(s)       { return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') }

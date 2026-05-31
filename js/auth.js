@@ -11,6 +11,10 @@ const MAX_ATTEMPTS    = 5
 const LOCKOUT_MINUTES = 15
 
 async function sha256(str) {
+  // crypto.subtle só funciona em contexto seguro (HTTPS ou localhost)
+  if (typeof crypto === 'undefined' || !crypto.subtle) {
+    throw new Error('Este app requer HTTPS. Acesse via https://rmichelon79.github.io/viabilidade/')
+  }
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str))
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('')
 }
