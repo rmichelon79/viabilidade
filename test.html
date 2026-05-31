@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Viabilidade — Testes Automáticos</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+  body { margin: 0; background: #f1f5f9; color: #1e293b; }
+  header { background: #0f172a; color: #fff; padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
+  header h1 { margin: 0; font-size: 1.2rem; }
+  #summary { display: flex; gap: 12px; margin-left: auto; }
+  .badge { padding: 4px 14px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; }
+  .badge-pass { background: #16a34a; }
+  .badge-fail { background: #dc2626; }
+  .badge-skip { background: #475569; }
+  main { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+  .suite { background: #fff; border-radius: 10px; margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08); overflow: hidden; }
+  .suite-header { padding: 14px 20px; font-weight: 700; font-size: 0.85rem;
+    letter-spacing: .05em; text-transform: uppercase; color: #475569;
+    background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px; }
+  .suite-count { font-size: 0.75rem; color: #94a3b8; font-weight: 500; text-transform: none; margin-left: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th { text-align: left; padding: 8px 16px; background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0; color: #374151; font-weight: 600; font-size: 0.75rem; }
+  td { padding: 8px 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  tr.pass td:first-child::before { content: '✓'; color: #16a34a; font-weight: 700; margin-right: 8px; }
+  tr.fail td:first-child::before { content: '✗'; color: #dc2626; font-weight: 700; margin-right: 8px; }
+  tr.fail { background: #fef2f2; }
+  tr.pass { background: #f0fdf4; }
+  .val { font-variant-numeric: tabular-nums; font-family: monospace; font-size: 0.8rem; }
+  .diff { color: #dc2626; font-weight: 600; }
+  .tol { color: #94a3b8; font-size: 0.72rem; }
+  #loading { text-align: center; padding: 60px; color: #64748b; font-size: 1rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🧪 Viabilidade — Testes Automáticos</h1>
+  <div id="summary"></div>
+</header>
+<main id="main"><div id="loading">Executando testes…</div></main>
+
+<script type="module">
+import { calcScenario, calcVGV, calcAll } from './js/calc.js'
+
+// ── HELPERS ─────────────────────────────────────────────────────────────────
+const abs = (v) => Math.abs(v)
+const approx = (a, b, tol = 0.01) => abs(a - b) / (abs(b) + 1) < tol   // relative 1%
+const brl = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR')
+const pct = v => (v * 100).toFixed(2) + '%'
+
+const results = []
+let suites = []
+
+function suite(name, fn) {
+  const tests = []
+  suites.push({ name, tests })
+  fn(tests)
+}
+
+function test(tests, name, expectedFn, actualFn, opts = {}) {
+  const tol = opts.tol ?? 0.01
+  const fmt = opts.fmt ?? (v => typeof v === 'number' ? brl(v) : String(v))
+  let expected, actual, pass, error
+  try {
+    expected = expectedFn()
+    actual   = actualFn()
+    if (typeof expected === 'boolean') {
+      pass = expected === actual
+    } else {
+      pass = approx(actual, expected, tol)
+    }
+  } catch(e) { pass = false; error = e.message }
+  tests.push({ name, expected, actual, pass, error, fmt, tol })
+}
+
+// ── FIXTURES ─────────────────────────────────────────────────────────────────
+// Base premissas (zeros onde possível para cálculos limpos)
+const P0 = {
+  nome: 'TEST', mesesDesenvolvimento: 0, prazoObra: 12, duracaoLancamento: 1,
+  impostoRET: 0, inccMensal: 0, permutaFinanceira: 0, permutaFisica: 0,
+  aquisicaoTerreno: 0, itbiRegistro: 0, iptuAnual: 0,
+  projetos: 0, alvaras: 0, registrosInc: 0, seguros: 0,
+  custoM2: 0, areaEquivalente: 0, custoIndireto: 0,
+  comissoes: 0, gestaoComercial: 0, marketing: 0, gestaoAdm: 0,
+  financiamentoPct: 0, taxaJurosAA: 12, mesInicioFinanciamento: 0, prazoAmortizacao: 0,
+  taxaDescontoAA: 12,
+}
+
+const U1 = [{ id: 'U1', tipologia: 'Tipo', qtd: 1, areaPriv: 100, precoBase: 1_000_000 }]
+const U2 = [
+  { id: 'U1', tipologia: '2D', qtd: 5, areaPriv: 80, precoBase: 500_000 },
+  { id: 'U2', tipologia: '3D', qtd: 5, areaPriv: 120, precoBase: 800_000 },
+]
+
+// Absorption: vende tudo no mês 1
+function absImediata(len = 90) { const a = new Array(len).fill(0); a[1] = 1; return a }
+// Vende tudo no mês de lançamento (m0)
+function absM0(len = 90) { const a = new Array(len).fill(0); a[0] = 1; return a }
+// Absorção uniforme em 12 meses a partir do mês 1
+function absUnif12(len = 90) { const a = new Array(len).fill(0); for(let i=1;i<=12;i++) a[i]=1/12; return a }
+
+const SC0 = { desconto: 0, pctEntrada: 30, pctObra: 60, pctChaves: 10 }
+
+function sc(extra = {}) { return { ...SC0, ...extra } }
+function p(extra = {}) { return { ...P0, ...extra } }
+
+function run(premissas, unidades, cenario, abs) {
+  return calcScenario(premissas, unidades, { ...cenario, absorcao: abs }, 'Test')
+}
+
+// ── SUITE 1: VGV ─────────────────────────────────────────────────────────────
+suite('1. Cálculo de VGV', t => {
+  test(t, 'VGV unitário: 1 ap × R$1M = R$1M',
+    () => 1_000_000, () => calcVGV(U1))
+
+  test(t, 'VGV multi-tipologia: 5×R$500k + 5×R$800k = R$6,5M',
+    () => 6_500_000, () => calcVGV(U2))
+
+  test(t, 'VGV com qtd: 10 aps × R$300k = R$3M',
+    () => 3_000_000,
+    () => calcVGV([{ id:'U', tipologia:'T', qtd:10, areaPriv:70, precoBase:300_000 }]))
+
+  test(t, 'vgvAjustado = vgvBruto quando desconto=0 e sem permuta',
+    () => 1_000_000,
+    () => run(p(), U1, sc(), absImediata()).vgvAjustado)
+
+  test(t, 'vgvAjustado cai 5% com desconto=-5%',
+    () => 950_000,
+    () => run(p(), U1, sc({ desconto: -5 }), absImediata()).vgvAjustado)
+})
+
+// ── SUITE 2: RECEITAS ─────────────────────────────────────────────────────────
+suite('2. Receitas e deduções', t => {
+  test(t, 'Receita bruta = VGV ajustado (sem RET, sem permuta)',
+    () => run(p(), U1, sc(), absImediata()).vgvAjustado,
+    () => run(p(), U1, sc(), absImediata()).receitaBruta)
+
+  test(t, 'Imposto RET 5%: impostosTotal = 5% × recBruta',
+    () => run(p({impostoRET:5}), U1, sc(), absImediata()).receitaBruta * 0.05,
+    () => run(p({impostoRET:5}), U1, sc(), absImediata()).impostosTotal)
+
+  test(t, 'Permuta financeira 10%: permutaTotal = 10% × recBruta',
+    () => run(p({permutaFinanceira:10}), U1, sc(), absImediata()).receitaBruta * 0.10,
+    () => run(p({permutaFinanceira:10}), U1, sc(), absImediata()).permutaTotal)
+
+  test(t, 'recLiqTotal = recBruta - permuta - impostos',
+    () => { const r = run(p({impostoRET:5,permutaFinanceira:10}), U1, sc(), absImediata())
+            return r.receitaBruta - r.permutaTotal - r.impostosTotal },
+    () => run(p({impostoRET:5,permutaFinanceira:10}), U1, sc(), absImediata()).recLiqTotal)
+})
+
+// ── SUITE 3: CUSTOS ───────────────────────────────────────────────────────────
+suite('3. Custos e despesas', t => {
+  test(t, 'Custo de obra: 100m² × R$2.000/m² = R$200k',
+    () => 200_000,
+    () => { const r = run(p({custoM2:2000,areaEquivalente:100}), U1, sc(), absImediata())
+            return r.custoDetalhe.cObra.reduce((s,v)=>s+v,0) })
+
+  test(t, 'BDI 15%: custo obra total = custo direto × 1,15',
+    () => 200_000 * 1.15,
+    () => { const r = run(p({custoM2:2000,areaEquivalente:100,custoIndireto:15}), U1, sc(), absImediata())
+            return r.custoDetalhe.cObra.reduce((s,v)=>s+v,0) })
+
+  test(t, 'Soma dos itens individuais = totalCustos',
+    () => { const r = run(p({custoM2:1000,areaEquivalente:100,comissoes:3,gestaoAdm:2,impostoRET:5}), U1, sc(), absUnif12())
+            const d = r.custoDetalhe
+            return Object.values(d).reduce((s,arr)=>s+arr.reduce((a,b)=>a+b,0),0) },
+    () => run(p({custoM2:1000,areaEquivalente:100,comissoes:3,gestaoAdm:2,impostoRET:5}), U1, sc(), absUnif12()).totalCustos)
+
+  test(t, 'Sem custos (zeros): totalCustos ≈ 0',
+    () => 0,
+    () => run(p(), U1, sc(), absImediata()).totalCustos)
+
+  test(t, 'IPTU só incide no pré-lançamento (prazoDesenv>0)',
+    () => 0,
+    () => { // mesesDesenvolvimento=0 → iptuTotal = vgv × % × 0/12 = 0
+            return run(p({iptuAnual:1}), U1, sc(), absImediata()).custoDetalhe.cIPTU.reduce((s,v)=>s+v,0) })
+
+  test(t, 'IPTU com 6 meses pré-lançamento: = VGV × taxa × 6/12',
+    () => 1_000_000 * 0.01 * 6/12,
+    () => run(p({iptuAnual:1, mesesDesenvolvimento:6}), U1, sc(), absImediata()).custoDetalhe.cIPTU.reduce((s,v)=>s+v,0))
+})
+
+// ── SUITE 4: RESULTADO OPERACIONAL ───────────────────────────────────────────
+suite('4. Resultado operacional', t => {
+  test(t, 'resultOp = recLiqTotal - totalCustos',
+    () => { const r = run(p({custoM2:1000,areaEquivalente:100,impostoRET:5}), U1, sc(), absImediata())
+            return r.recLiqTotal - r.totalCustos },
+    () => run(p({custoM2:1000,areaEquivalente:100,impostoRET:5}), U1, sc(), absImediata()).resultOp)
+
+  test(t, 'Sem custos, sem impostos: resultOp = VGV ajustado',
+    () => 1_000_000,
+    () => run(p(), U1, sc(), absImediata()).resultOp)
+
+  test(t, 'margemVGV = resultOp / vgvBruto',
+    () => { const r = run(p({custoM2:1000,areaEquivalente:100}), U1, sc(), absImediata())
+            return r.resultOp / r.vgvBruto },
+    () => run(p({custoM2:1000,areaEquivalente:100}), U1, sc(), absImediata()).margemVGV)
+})
+
+// ── SUITE 5: FINANCIAMENTO ────────────────────────────────────────────────────
+suite('5. Financiamento bancário', t => {
+  const pFin = p({ custoM2:2000, areaEquivalente:500, financiamentoPct:80, taxaJurosAA:12, mesInicioFinanciamento:0, prazoObra:24 })
+
+  test(t, 'Sem financiamento: desembolsos = 0',
+    () => 0,
+    () => run(p({financiamentoPct:0}), U1, sc(), absUnif12()).desembolsosTotal)
+
+  test(t, 'Sem financiamento: juros = 0',
+    () => 0,
+    () => run(p({financiamentoPct:0}), U1, sc(), absUnif12()).jurosTotais)
+
+  test(t, 'Bullet: amortTotal = desembolsosTotal',
+    () => { const r = run(pFin, U1, sc(), absUnif12()); return r.desembolsosTotal },
+    () => run(pFin, U1, sc(), absUnif12()).amortTotal)
+
+  test(t, 'Volume financiado = custoDireto × financiamentoPct%',
+    () => 2000 * 500 * 0.80,
+    () => run(pFin, U1, sc(), absUnif12()).desembolsosTotal)
+
+  test(t, 'custoLiqFinanc = desembolsos - amort - juros',
+    () => { const r = run(pFin, U1, sc(), absUnif12())
+            return r.desembolsosTotal - r.amortTotal - r.jurosTotais },
+    () => run(pFin, U1, sc(), absUnif12()).custoLiqFinanc)
+
+  test(t, 'Bullet: custoLiqFinanc = -jurosTotais',
+    () => { const r = run(pFin, U1, sc(), absUnif12()); return -r.jurosTotais },
+    () => run(pFin, U1, sc(), absUnif12()).custoLiqFinanc)
+
+  test(t, 'mesInicioFinanciamento respeitado: primeiro desembolso no mês correto',
+    () => true,
+    () => {
+      const r = run(p({custoM2:2000,areaEquivalente:500,financiamentoPct:80,
+                       taxaJurosAA:12,mesInicioFinanciamento:6,prazoObra:24}), U1, sc(), absUnif12())
+      return r.disb.slice(0,6).every(v => v === 0) && r.disb[6] > 0
+    }, { fmt: v => String(v) })
+
+  test(t, 'Desembolsos param no mês de entrega (não continuam depois)',
+    () => true,
+    () => {
+      const r = run(p({custoM2:2000,areaEquivalente:500,financiamentoPct:80,
+                       taxaJurosAA:12,mesInicioFinanciamento:3,prazoObra:12}), U1, sc(), absUnif12())
+      const mesEntr = r.mesEntr
+      return r.disb.slice(mesEntr+1).every(v => v === 0)
+    }, { fmt: v => String(v) })
+})
+
+// ── SUITE 6: FLUXO DE CAIXA ───────────────────────────────────────────────────
+suite('6. Fluxo de caixa', t => {
+  const r1 = run(p({custoM2:1000,areaEquivalente:200,financiamentoPct:50,taxaJurosAA:12}), U1, sc(), absUnif12())
+
+  test(t, 'Fluxo mensal = recLiq - custos + disb - juros - amort (mês a mês)',
+    () => true,
+    () => {
+      const n = r1.totalM + 1
+      for(let t=0;t<n;t++){
+        const calc = r1.recLiqMensal[t] - r1.custos[t] + r1.disb[t] - r1.jurosMensal[t] - r1.amortMensal[t]
+        if(Math.abs(calc - r1.fluxo[t]) > 1) return false
+      }
+      return true
+    }, { fmt: v => String(v) })
+
+  test(t, 'Fluxo acumulado final ≈ resultFinal',
+    () => r1.resultFinal,
+    () => r1.fluxoAcum[r1.totalM])
+
+  test(t, 'Exposição = mínimo do fluxo acumulado',
+    () => Math.min(...r1.fluxoAcum),
+    () => r1.exposicao)
+
+  test(t, 'Sem vendas, sem custos: fluxo = 0 em todos os meses',
+    () => true,
+    () => {
+      const r = run(p(), [{ id:'U1', tipologia:'T', qtd:1, areaPriv:100, precoBase:1_000_000 }],
+                   sc(), new Array(90).fill(0))
+      return r.fluxo.every(v => Math.abs(v) < 1)
+    }, { fmt: v => String(v) })
+})
+
+// ── SUITE 7: VPL e TIR ────────────────────────────────────────────────────────
+suite('7. VPL e TIR', t => {
+  const rBase = run(p({custoM2:1000,areaEquivalente:200,taxaDescontoAA:12}), U2, sc(), absUnif12())
+
+  test(t, 'TIR propriedade fundamental: NPV @ TIR ≈ 0 (tol 2%)',
+    () => true,
+    () => {
+      const r = rBase
+      const tirM = Math.pow(1 + r.tir, 1/12) - 1
+      const npv = r.fluxo.reduce((s,cf,t) => s + cf / Math.pow(1+tirM,t), 0)
+      return Math.abs(npv) / (Math.abs(r.vgvBruto) + 1) < 0.02   // 2% tolerância p/ NR
+    }, { fmt: v => String(v) })
+
+  test(t, 'VPL decresce quando taxa de desconto aumenta',
+    () => true,
+    () => {
+      const r1 = run(p({custoM2:1000,areaEquivalente:200,taxaDescontoAA:10}), U2, sc(), absUnif12())
+      const r2 = run(p({custoM2:1000,areaEquivalente:200,taxaDescontoAA:20}), U2, sc(), absUnif12())
+      return r1.vpl > r2.vpl
+    }, { fmt: v => String(v) })
+
+  test(t, 'VPL > 0 quando TIR > taxa de desconto',
+    () => true,
+    () => {
+      const r = run(p({custoM2:500,areaEquivalente:200,taxaDescontoAA:10}), U2, sc(), absUnif12())
+      return (r.tir > 0.10) === (r.vpl > 0)
+    }, { fmt: v => String(v) })
+
+  test(t, 'Projeto sem lucro: TIR ≤ 0 ou VPL < 0',
+    () => true,
+    () => {
+      // Custo = R$1000 × 2000m² = R$2M, VGV = R$1M → prejuízo certo
+      const r = run(p({custoM2:1000,areaEquivalente:2000}), U1, sc(), absUnif12())
+      return r.resultFinal < 0
+    }, { fmt: v => String(v) })
+})
+
+// ── SUITE 8: MARKETING ───────────────────────────────────────────────────────
+suite('8. Distribuição de marketing', t => {
+  const pMkt = p({ marketing: 2.5, duracaoLancamento: 3, mesesDesenvolvimento: 6 })
+
+  test(t, 'Total de marketing = VGV ajustado × 2,5%',
+    () => 1_000_000 * 0.025,
+    () => run(pMkt, U1, sc(), absUnif12()).custoDetalhe.cMarketing.reduce((s,v)=>s+v,0))
+
+  test(t, '50% do marketing nos meses de lançamento (m6, m7, m8)',
+    () => 1_000_000 * 0.025 * 0.5,
+    () => {
+      const r = run(pMkt, U1, sc(), absUnif12())
+      return r.custoDetalhe.cMarketing.slice(6, 9).reduce((s,v)=>s+v,0)
+    })
+
+  test(t, 'Marketing zerado nos meses 0–5 (pré-lançamento)',
+    () => true,
+    () => run(pMkt, U1, sc(), absUnif12()).custoDetalhe.cMarketing.slice(0,6).every(v=>v<0.01),
+    { fmt: v => String(v) })
+})
+
+// ── SUITE 9: CONSISTÊNCIA CENÁRIOS ───────────────────────────────────────────
+suite('9. Consistência entre cenários (ALTANA-like)', t => {
+  const pAlt = {
+    nome:'ALTANA', mesesDesenvolvimento:6, prazoObra:48, duracaoLancamento:3,
+    impostoRET:5, inccMensal:0.5, permutaFinanceira:17.0625, permutaFisica:0,
+    aquisicaoTerreno:0, itbiRegistro:0.4, iptuAnual:0.25,
+    projetos:1.5, alvaras:0.3, registrosInc:0.3, seguros:0.3,
+    custoM2:4000, areaEquivalente:8800, custoIndireto:15,
+    comissoes:5, gestaoComercial:0, marketing:2.5, gestaoAdm:5,
+    financiamentoPct:80, taxaJurosAA:16, mesInicioFinanciamento:12, prazoAmortizacao:0,
+    taxaDescontoAA:20,
+  }
+  const uAlt = [{ id:'ALTANA', tipologia:'Todos', qtd:23, areaPriv:175, precoBase:101_709_885/23 }]
+  const f = 1/23
+  // Otimista:  4 un m6 + 19 un a cada 2m (m8..m44)  = 4+19 = 23 ✓
+  // Base:      3 un m6 + 20 un a cada 2m (m8..m46)  = 3+20 = 23 ✓
+  // Pessimista: 23 un a cada 3m (m6..m72)            = 23   ✓
+  const absOti = (() => { const a=new Array(90).fill(0); a[6]=4*f; for(let i=8;i<=44;i+=2)a[i]=f; return a })()
+  const absBase= (() => { const a=new Array(90).fill(0); a[6]=3*f; for(let i=8;i<=46;i+=2)a[i]=f; return a })()
+  const absPes = (() => { const a=new Array(90).fill(0); for(let i=6;i<=6+3*22;i+=3)a[i]=f; return a })()
+
+  const rO = run(pAlt, uAlt, { desconto:0, pctEntrada:10, pctObra:60, pctChaves:30 }, absOti)
+  const rB = run(pAlt, uAlt, { desconto:-2, pctEntrada:10, pctObra:60, pctChaves:30 }, absBase)
+  const rP = run(pAlt, uAlt, { desconto:-5, pctEntrada:10, pctObra:60, pctChaves:30 }, absPes)
+
+  test(t, 'Otimista tem melhor resultado que Base',
+    () => true, () => rO.resultFinal > rB.resultFinal, { fmt: v => String(v) })
+
+  test(t, 'Base tem melhor resultado que Pessimista',
+    () => true, () => rB.resultFinal > rP.resultFinal, { fmt: v => String(v) })
+
+  test(t, 'Otimista tem maior TIR',
+    () => true, () => rO.tir > rB.tir && rB.tir > rP.tir, { fmt: v => String(v) })
+
+  test(t, 'Desembolsos = Amortização em todos os cenários (bullet)',
+    () => true,
+    () => [rO,rB,rP].every(r => Math.abs(r.desembolsosTotal - r.amortTotal) < 100),
+    { fmt: v => String(v) })
+
+  test(t, 'VGV Bruto ≈ R$101,7M',
+    () => 101_709_885, () => rB.vgvBruto, { tol: 0.001 })
+
+  test(t, 'VGV ajustado Otimista = VGV bruto (desconto 0)',
+    () => rO.vgvBruto, () => rO.vgvAjustado)
+
+  test(t, 'VGV ajustado Base = VGV × (1-0.02) × (1-permutaFisica)',
+    () => rB.vgvBruto * (1 + (-0.02)), () => rB.vgvAjustado)
+
+  test(t, 'Resultado positivo nos 3 cenários',
+    () => true, () => rO.resultFinal > 0 && rB.resultFinal > 0 && rP.resultFinal > 0, { fmt: v => String(v) })
+
+  test(t, 'Custo de obra ≈ R$40,48M (8800m² × R$4000 × 1,15 BDI)',
+    () => 8800 * 4000 * 1.15,
+    () => rB.custoDetalhe.cObra.reduce((s,v)=>s+v,0))
+
+  test(t, 'Custo Líquido Financiamento = -Juros Totais (bullet)',
+    () => -rB.jurosTotais, () => rB.custoLiqFinanc)
+})
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+const main = document.getElementById('main')
+main.innerHTML = ''
+let totalPass = 0, totalFail = 0
+
+for (const suite of suites) {
+  const div = document.createElement('div')
+  div.className = 'suite'
+  const suitePass = suite.tests.filter(t => t.pass).length
+  const suiteFail = suite.tests.length - suitePass
+  totalPass += suitePass; totalFail += suiteFail
+  div.innerHTML = `
+    <div class="suite-header">
+      ${suiteFail === 0 ? '✅' : '❌'} ${suite.name}
+      <span class="suite-count">${suitePass}/${suite.tests.length} passaram</span>
+    </div>
+    <table>
+      <thead><tr><th style="width:42%">Teste</th><th>Esperado</th><th>Obtido</th><th>Tolerância</th></tr></thead>
+      <tbody>
+        ${suite.tests.map(t => `
+          <tr class="${t.pass ? 'pass' : 'fail'}">
+            <td>${t.name}${t.error ? ` <em style="color:#dc2626">(${t.error})</em>` : ''}</td>
+            <td class="val">${t.expected !== undefined ? t.fmt(t.expected) : '–'}</td>
+            <td class="val ${t.pass ? '' : 'diff'}">${t.actual !== undefined ? t.fmt(t.actual) : '–'}</td>
+            <td class="tol">${typeof t.expected === 'boolean' ? 'exato' : (t.tol*100).toFixed(0) + '%'}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`
+  main.appendChild(div)
+}
+
+document.getElementById('summary').innerHTML = `
+  <span class="badge badge-pass">${totalPass} passaram</span>
+  <span class="badge badge-fail">${totalFail} falharam</span>`
+</script>
+</body>
+</html>
