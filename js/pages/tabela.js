@@ -79,16 +79,22 @@ export function render(container) {
 
 function handleInput(e, container) {
   const el = e.target
-  const id = el.closest('tr')?.dataset.id
+  const tr = el.closest('tr')
+  const id = tr?.dataset.id
   if (!id) return
   const key = el.dataset.key
+  // 'id' and 'tipologia' are strings; everything else is numeric
+  const strKeys = ['id', 'tipologia']
+  const val = strKeys.includes(key) ? el.value : (parseFloat(el.value) || 0)
   const uns = getState().unidades.map(u => {
     if (u.id !== id) return u
-    const val = (key === 'tipologia') ? el.value : (parseFloat(el.value) || 0)
     return { ...u, [key]: val }
   })
   setUnidades(uns)
-  updateRow(document.querySelector(`tr[data-id="${id}"]`), uns.find(u => u.id === id))
+  // Keep the tr's data-id in sync when the unit code is renamed
+  if (key === 'id' && tr) tr.dataset.id = val
+  const activeId = key === 'id' ? val : id
+  updateRow(document.querySelector(`tr[data-id="${esc(activeId)}"]`), uns.find(u => u.id === activeId))
   updateSummary(container, uns)
 }
 

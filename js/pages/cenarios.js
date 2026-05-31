@@ -60,7 +60,36 @@ export function render(container) {
   <div style="display:flex;gap:24px;margin-bottom:20px;flex-wrap:wrap">
     ${KEYS.map(k => `
     <div style="flex:1;min-width:280px">
-      <div style="font-weight:600;color:${COLORS[k]};margin-bottom:8px">${LABELS[k]}</div>
+      <div style="font-weight:600;color:${COLORS[k]};margin-bottom:10px">${LABELS[k]}</div>
+
+      <!-- Gerador rápido de curva -->
+      <details class="quick-gen-panel" data-sc="${k}" style="margin-bottom:10px">
+        <summary style="font-size:0.75rem;font-weight:600;color:#475569;letter-spacing:.05em;cursor:pointer;text-transform:uppercase;padding:6px 0">
+          ⚡ Geração rápida de curva
+        </summary>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-top:6px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div>
+              <div style="font-size:0.7rem;color:#64748b;margin-bottom:3px">Mês de início</div>
+              <input class="fi w80" type="number" min="0" data-sc="${k}" data-qp="mesInicio" style="width:100%">
+            </div>
+            <div>
+              <div style="font-size:0.7rem;color:#64748b;margin-bottom:3px">Un. no lançamento</div>
+              <input class="fi w80" type="number" min="0" step="1" data-sc="${k}" data-qp="unLanc" value="1" style="width:100%">
+            </div>
+            <div>
+              <div style="font-size:0.7rem;color:#64748b;margin-bottom:3px">Un. por período</div>
+              <input class="fi w80" type="number" min="1" step="1" data-sc="${k}" data-qp="unPer" value="1" style="width:100%">
+            </div>
+            <div>
+              <div style="font-size:0.7rem;color:#64748b;margin-bottom:3px">Intervalo (meses)</div>
+              <input class="fi w80" type="number" min="1" step="1" data-sc="${k}" data-qp="cadencia" value="2" style="width:100%">
+            </div>
+          </div>
+          <button class="btn-add" style="width:100%;font-size:0.78rem;padding:6px" data-sc="${k}" data-action="quick-gen">↺ Gerar curva</button>
+        </div>
+      </details>
+
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
         <span style="font-size:0.8rem;color:#64748b">Total absorvido:</span>
         <span class="fv" id="abs-total-${k}" style="font-weight:600">–</span>
@@ -81,6 +110,7 @@ export function render(container) {
 `
 
   populatePaymentConditions(container)
+  populateQuickGen(container)
   bindPaymentInputs(container)
   renderAbsorcao()
   bindAbsorcaoActions(container)
@@ -111,6 +141,14 @@ function bindPaymentInputs(container) {
     setCenario(k, { [key]: v })
     updateChavesField(container, k)
     updateTotalPct(container, k)
+  })
+}
+
+function populateQuickGen(container) {
+  const mesLanc = (getState().premissas.mesesDesenvolvimento || 0) | 0
+  KEYS.forEach(k => {
+    const inp = container.querySelector(`[data-sc="${k}"][data-qp="mesInicio"]`)
+    if (inp && !inp.value) inp.value = mesLanc
   })
 }
 
@@ -152,6 +190,41 @@ function renderAbsorcao() {
 
 function bindAbsorcaoActions(container) {
   container.addEventListener('click', e => {
+    if (e.target.dataset.action === 'quick-gen') {
+      const k = e.target.dataset.sc
+      const panel = e.target.closest('[data-sc]')
+      const qp = name => parseFloat(panel?.querySelector(`[data-qp="${name}"]`)?.value) || 0
+      const mesInicio = Math.max(0, Math.round(qp('mesInicio')))
+      const unLanc    = Math.max(0, Math.round(qp('unLanc')))
+      const unPer     = Math.max(1, Math.round(qp('unPer')))
+      const cadencia  = Math.max(1, Math.round(qp('cadencia')))
+
+      // Total units from price table
+      const totalUn = getState().unidades.reduce((s, u) => s + (u.qtd || 1), 0)
+      if (totalUn <= 0) { alert('Cadastre unidades na Tabela de Preços primeiro.'); return }
+
+      const abs = new Array(120).fill(0)
+      let placed = 0
+
+      // Lançamento: first month(s)
+      const lancPlaced = Math.min(unLanc, totalUn)
+      if (lancPlaced > 0) { abs[mesInicio] = lancPlaced / totalUn; placed += lancPlaced }
+
+      // Vendas subsequentes
+      let m = mesInicio + cadencia
+      while (placed < totalUn && m < 120) {
+        const n = Math.min(unPer, totalUn - placed)
+        abs[m] = n / totalUn
+        placed += n
+        m += cadencia
+      }
+
+      setAbsorcao(k, abs)
+      renderAbsorcao()
+      renderAbsChart()
+      return
+    }
+
     if (e.target.dataset.action === 'add-month') {
       const k = e.target.dataset.sc
       const abs = [...(getState().cenarios[k].absorcao || new Array(90).fill(0))]
