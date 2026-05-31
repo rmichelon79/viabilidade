@@ -161,25 +161,37 @@ export function calcScenario(p, unidades, sc, nome) {
   const margemRec = recLiqTotal > 0 ? resultOp / recLiqTotal : 0
 
   // === FINANCIAMENTO ===
-  const volumeFinanc = custoDireto * d(p.financiamentoPct)
+  const volumeFinanc    = custoDireto * d(p.financiamentoPct)
+  // Desembolsos seguem a CurvaS a partir do mês de início do financiamento
+  // (mínimo = mesLanc, pois obra só começa no lançamento)
+  const mesInicioFinanc = Math.max(mesLanc, (p.mesInicioFinanciamento || 0) | 0)
   const disb = new Array(totalM + 1).fill(0)
   for (let t = 0; t < p.prazoObra; t++) {
-    const m = mesLanc + t
+    const m = mesInicioFinanc + t
     if (m <= totalM) disb[m] += volumeFinanc * curve[t]
   }
 
   let saldo = 0
+  let saldoEntrega = 0
   const jurosMensal = new Array(totalM + 1).fill(0)
   const amortMensal = new Array(totalM + 1).fill(0)
+  const prazoAmort  = (p.prazoAmortizacao || 0) | 0
 
   for (let t = 0; t <= totalM; t++) {
-    // Interest on balance BEFORE this month's disbursement
-    const j = saldo * tjm
-    jurosMensal[t] = j
+    // Juros sobre saldo ANTES do desembolso do mês
+    jurosMensal[t] = saldo * tjm
     saldo += disb[t]
-    if (t === mesEntr && p.prazoAmortizacao === 0) {
-      amortMensal[t] = saldo
-      saldo = 0
+
+    if (prazoAmort === 0) {
+      // Bullet: amortização total na entrega
+      if (t === mesEntr) { amortMensal[t] = saldo; saldo = 0 }
+    } else {
+      // SAC: amortização constante a partir da entrega
+      if (t === mesEntr) saldoEntrega = saldo
+      if (t >= mesEntr && saldoEntrega > 0.01) {
+        const parcela = Math.min(saldoEntrega / prazoAmort, saldo)
+        if (parcela > 0.01) { amortMensal[t] = parcela; saldo -= parcela }
+      }
     }
   }
 
