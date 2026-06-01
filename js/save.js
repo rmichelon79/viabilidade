@@ -1,6 +1,6 @@
 // Análises salvas — agora no Supabase (tabela viab_analises), compartilhadas e
 // persistentes. exportJSON/importJSON continuam por arquivo (inalterados).
-import { supabase } from './supabase.js'
+import { SBC as supabase } from './supabase.js'
 
 function fmtDate(iso) {
   try {

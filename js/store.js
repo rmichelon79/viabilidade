@@ -1,5 +1,5 @@
 import { DEFAULT_PREMISSAS, DEFAULT_UNIDADES, DEFAULT_CENARIOS } from './defaults.js'
-import { supabase } from './supabase.js'
+import { SBC as supabase } from './supabase.js'
 
 const KEY = 'viab-state-v1'        // cache local (espelho)
 const REMOTE_ID = 'sopra'          // doc compartilhado no Supabase
