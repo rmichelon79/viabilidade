@@ -69,12 +69,14 @@ function init() {
       <input id="save-name" class="fi" type="text" value="${esc(suggested)}" placeholder="Nome da análise" style="width:100%">
     `, [
       { label: 'Cancelar', cls: 'btn-sm', action: closeModal },
-      { label: '💾 Salvar', cls: 'btn-add', action: () => {
+      { label: '💾 Salvar', cls: 'btn-add', action: async () => {
         const name = document.getElementById('save-name')?.value?.trim()
         if (!name) return
-        saveAnalysis(name, getState())
-        closeModal()
-        flashMsg('✅ Análise salva: ' + name)
+        try {
+          await saveAnalysis(name, getState())
+          closeModal()
+          flashMsg('✅ Análise salva: ' + name)
+        } catch (err) { alert('Erro ao salvar: ' + err.message) }
       }},
     ])
     // Select text in input for easy replacement
@@ -164,8 +166,8 @@ function wireModalClose() {
   })
 }
 
-function showOpenModal() {
-  const saved = getSaved()
+async function showOpenModal() {
+  const saved = await getSaved()
   const bodyHTML = saved.length === 0
     ? '<div class="modal-empty">Nenhuma análise salva ainda.<br>Use "Salvar análise" para guardar o estudo atual.</div>'
     : saved.map(e => `
@@ -182,21 +184,21 @@ function showOpenModal() {
   ])
 
   // Wire events inside modal
-  document.getElementById('modal-body')?.addEventListener('click', e => {
+  document.getElementById('modal-body')?.addEventListener('click', async e => {
     const item = e.target.closest('.saved-item')
     const delBtn = e.target.closest('[data-del]')
     if (delBtn) {
       e.stopPropagation()
       const id = Number(delBtn.dataset.del)
       if (confirm('Excluir esta análise?')) {
-        deleteAnalysis(id)
+        await deleteAnalysis(id)
         showOpenModal() // refresh
       }
       return
     }
     if (item) {
       const id = Number(item.dataset.id)
-      const entry = getSaved().find(e => e.id === id)
+      const entry = (await getSaved()).find(e => e.id === id)
       if (!entry) return
       if (confirm(`Carregar "${entry.name}"? O estado atual será substituído.`)) {
         loadState(entry.state)

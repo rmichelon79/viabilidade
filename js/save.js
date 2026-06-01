@@ -1,26 +1,38 @@
-const SAVE_KEY = 'viab-saved-v1'
+// Análises salvas — agora no Supabase (tabela viab_analises), compartilhadas e
+// persistentes. exportJSON/importJSON continuam por arquivo (inalterados).
+import { supabase } from './supabase.js'
 
-export function getSaved() {
-  try { return JSON.parse(localStorage.getItem(SAVE_KEY) || '[]') }
-  catch { return [] }
+function fmtDate(iso) {
+  try {
+    return new Date(iso).toLocaleDateString('pt-BR', {
+      day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit',
+    })
+  } catch { return '' }
 }
 
-export function saveAnalysis(name, state) {
-  const saved = getSaved()
-  const entry = {
-    id: Date.now(),
-    name,
-    date: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }),
-    state: JSON.parse(JSON.stringify(state)),
-  }
-  saved.unshift(entry)
-  localStorage.setItem(SAVE_KEY, JSON.stringify(saved.slice(0, 30)))
-  return entry
+export async function getSaved() {
+  const { data, error } = await supabase
+    .from('viab_analises')
+    .select('id,nome,criado_em,payload')
+    .order('criado_em', { ascending: false })
+    .limit(50)
+  if (error) return []
+  return (data || []).map(r => ({ id: r.id, name: r.nome, date: fmtDate(r.criado_em), state: r.payload }))
 }
 
-export function deleteAnalysis(id) {
-  const saved = getSaved().filter(e => e.id !== id)
-  localStorage.setItem(SAVE_KEY, JSON.stringify(saved))
+export async function saveAnalysis(name, state) {
+  const { data, error } = await supabase
+    .from('viab_analises')
+    .insert({ nome: name, payload: JSON.parse(JSON.stringify(state)) })
+    .select('id,nome,criado_em,payload')
+    .single()
+  if (error) throw new Error(error.message)
+  return { id: data.id, name: data.nome, date: fmtDate(data.criado_em), state: data.payload }
+}
+
+export async function deleteAnalysis(id) {
+  const { error } = await supabase.from('viab_analises').delete().eq('id', id)
+  if (error) throw new Error(error.message)
 }
 
 export function exportJSON(state) {
@@ -43,7 +55,7 @@ export function importJSON(file) {
       try {
         const data = JSON.parse(e.target.result)
         if (data?.state) resolve(data.state)
-        else if (data?.premissas) resolve(data) // bare state object
+        else if (data?.premissas) resolve(data)
         else reject(new Error('Formato inválido: arquivo não contém um estado válido'))
       } catch (err) { reject(new Error('JSON inválido: ' + err.message)) }
     }
