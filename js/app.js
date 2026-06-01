@@ -4,7 +4,7 @@ import { render as renderTabela } from './pages/tabela.js'
 import { render as renderCenarios, destroy as destroyCenarios } from './pages/cenarios.js'
 import { render as renderResultados, destroy as destroyResultados } from './pages/resultados.js'
 import { render as renderFluxo, update as updateFluxo } from './pages/fluxo.js'
-import { subscribe, resetAll, getState, loadState } from './store.js'
+import { subscribe, resetAll, getState, loadState, loadRemote } from './store.js'
 import { getSaved, saveAnalysis, deleteAnalysis, exportJSON, importJSON } from './save.js'
 
 const PAGES = {
@@ -127,7 +127,8 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  initAuth(() => {
+  initAuth(async () => {
+    await loadRemote()
     init()
     wireModalClose()
     document.getElementById('btn-logout')?.addEventListener('click', () => {
