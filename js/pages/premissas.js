@@ -149,6 +149,7 @@ export function render(container) {
     </div>
     <div class="field-row"><label class="fl">Imposto sobre receita — RET</label><div class="fi-unit"><input class="fi w80" type="number" step="0.01" data-key="impostoRET"><span class="unit">%</span></div></div>
     <div class="field-row"><label class="fl">INCC / correção durante obra</label><div class="fi-unit"><input class="fi w80" type="number" step="0.01" data-key="inccMensal"><span class="unit">% a.m.</span></div></div>
+    <div class="field-row"><label class="fl">Taxa de desconto (VPL)</label><div class="fi-unit"><input class="fi w80" type="number" step="0.5" data-key="taxaDescontoAA"><span class="unit">% a.a.</span></div></div>
   </div>
 
   <div class="card prem-card">
@@ -186,12 +187,11 @@ export function render(container) {
   </div>
 
   <div class="card">
-    <div class="card-title">FINANCIAMENTO E DESCONTO</div>
+    <div class="card-title">FINANCIAMENTO</div>
     <div class="field-row"><label class="fl">Financiamento (% custo direto)</label><div class="fi-unit"><input class="fi w80" type="number" step="1" data-key="financiamentoPct"><span class="unit">%</span></div></div>
     <div class="field-row"><label class="fl">Taxa de juros</label><div class="fi-unit"><input class="fi w80" type="number" step="0.1" data-key="taxaJurosAA"><span class="unit">% a.a.</span></div></div>
     <div class="field-row"><label class="fl">Mês de início do financiamento</label><div class="fi-unit"><input class="fi w80" type="number" step="1" data-key="mesInicioFinanciamento"><span class="unit">m</span></div></div>
     <div class="field-row"><label class="fl">Prazo de amortização (0 = na entrega)</label><div class="fi-unit"><input class="fi w80" type="number" step="1" data-key="prazoAmortizacao"><span class="unit">m</span></div></div>
-    <div class="field-row"><label class="fl">Taxa de desconto (VPL)</label><div class="fi-unit"><input class="fi w80" type="number" step="0.5" data-key="taxaDescontoAA"><span class="unit">% a.a.</span></div></div>
   </div>
 
 </div>
