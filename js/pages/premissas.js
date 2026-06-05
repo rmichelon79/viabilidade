@@ -131,11 +131,11 @@ export function render(container) {
     <div class="card-title">DADOS DO ESTUDO</div>
     <div class="field-stack"><label class="fl-s">Nome do empreendimento</label><input class="fi" type="text" data-key="nome"></div>
     <div class="field-stack"><label class="fl-s">Endereço</label><input class="fi" type="text" data-key="endereco"></div>
-    <div class="field-row" style="padding-top:8px"><label class="fl">Data base</label><input class="fi w100" type="date" data-key="data"></div>
   </div>
 
   <div class="card">
     <div class="card-title">LINHA DO TEMPO</div>
+    <div class="field-row"><label class="fl">Data de início</label><input class="fi w100" type="date" data-key="data"></div>
     <div class="field-row"><label class="fl">Meses de desenvolvimento</label><div class="fi-unit"><input class="fi w80" type="number" min="0" data-key="mesesDesenvolvimento"><span class="unit">m</span></div></div>
     <div class="field-row"><label class="fl">Prazo de obra</label><div class="fi-unit"><input class="fi w80" type="number" min="1" data-key="prazoObra"><span class="unit">m</span></div></div>
     <div class="field-row"><label class="fl">Duração do lançamento</label><div class="fi-unit"><input class="fi w80" type="number" min="1" data-key="duracaoLancamento"><span class="unit">m</span></div></div>
