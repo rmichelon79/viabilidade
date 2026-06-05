@@ -12,11 +12,11 @@ export function calcAnchors(p, unidades) {
 
 // Grupos na ordem de apresentação pedida.
 export const GROUPS = [
-  { id: 'terreno',   title: 'PERMUTA E CUSTOS DE TERRENO' },
+  { id: 'terreno',   title: 'PERMUTA E CUSTOS DO TERRENO' },
   { id: 'incorp',    title: 'CUSTOS DE INCORPORAÇÃO' },
   { id: 'obra',      title: 'CUSTOS DE OBRA' },
   { id: 'comercial', title: 'CUSTOS COMERCIAIS' },
-  { id: 'marketing', title: 'CUSTOS DE MARKETING' },
+  { id: 'marketing', title: 'DESPESAS DE MARKETING' },
   { id: 'adm',       title: 'DESPESAS ADMINISTRATIVAS' },
 ]
 
@@ -24,17 +24,17 @@ export const GROUPS = [
 export const COST_ROWS = [
   { group: 'terreno',   desc: 'Permuta financeira do terreno', kind: 'pct', key: 'permutaFinanceira' },
   { group: 'terreno',   desc: 'Permuta física do terreno',     kind: 'pct', key: 'permutaFisica' },
-  { group: 'terreno',   desc: 'Aquisição do terreno',          kind: 'pct', key: 'aquisicaoTerreno' },
-  { group: 'terreno',   desc: 'ITBI e registro',               kind: 'pct', key: 'itbiRegistro' },
-  { group: 'terreno',   desc: 'IPTU do terreno (a.a.)',        kind: 'pct', key: 'iptuAnual' },
-  { group: 'incorp',    desc: 'Projetos',                      kind: 'pct', key: 'projetos' },
+  { group: 'terreno',   desc: 'Aquisição do Terreno',          kind: 'pct', key: 'aquisicaoTerreno' },
+  { group: 'terreno',   desc: 'Legalização do Terreno (ITBI)', kind: 'pct', key: 'itbiRegistro' },
+  { group: 'terreno',   desc: 'IPTU do Terreno (a.a.)',        kind: 'pct', key: 'iptuAnual' },
+  { group: 'incorp',    desc: 'Consultorias e Projetos de Incorporação', kind: 'pct', key: 'projetos' },
   { group: 'incorp',    desc: 'Alvarás e licenças',            kind: 'pct', key: 'alvaras' },
-  { group: 'incorp',    desc: 'Registros e incorporação',      kind: 'pct', key: 'registrosInc' },
-  { group: 'incorp',    desc: 'Seguros',                       kind: 'pct', key: 'seguros' },
+  { group: 'incorp',    desc: 'Taxas e Registros da Incorporação', kind: 'pct', key: 'registrosInc' },
+  { group: 'incorp',    desc: 'Seguros da Incorporação',       kind: 'pct', key: 'seguros' },
   { group: 'obra',      desc: 'Custo direto de obra',          kind: 'obra' },
   { group: 'obra',      desc: 'Custo indireto (BDI, fiscaliz.)', kind: 'indireto' },
-  { group: 'comercial', desc: 'Comissões de venda',            kind: 'pct', key: 'comissoes' },
-  { group: 'comercial', desc: 'Gestão comercial',              kind: 'pct', key: 'gestaoComercial' },
+  { group: 'comercial', desc: 'Comissões de vendas',           kind: 'pct', key: 'comissoes' },
+  { group: 'comercial', desc: 'Equipe Comercial',              kind: 'pct', key: 'gestaoComercial' },
   { group: 'marketing', desc: 'Marketing',                     kind: 'pct', key: 'marketing' },
   { group: 'adm',       desc: 'Gestão da incorporação / adm',  kind: 'pct', key: 'gestaoAdm' },
 ]
@@ -153,7 +153,7 @@ export function render(container) {
   </div>
 
   <div class="card prem-card">
-    <div class="card-title">PERMUTA E CUSTOS DE TERRENO</div>
+    <div class="card-title">PERMUTA E CUSTOS DO TERRENO</div>
     ${costTable('terreno')}
   </div>
 
@@ -177,7 +177,7 @@ export function render(container) {
   </div>
 
   <div class="card prem-card">
-    <div class="card-title">CUSTOS DE MARKETING</div>
+    <div class="card-title">DESPESAS DE MARKETING</div>
     ${costTable('marketing')}
   </div>
 
