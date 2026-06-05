@@ -43,7 +43,7 @@ export function render(container) {
       const r = calcAll(getState())[_activeKey]
       const res = await exportarParaOrcamento(r, p, LABELS[_activeKey])
       const linhas = res.resumo.map(x => `  ${x.ano} v${x.versao}: ${x.lancamentos} lançamentos`).join('\n')
-      const ov = res.overflow ? `\n\n(${res.overflow} mês(es) além do 5º ano somados em dez/${res.anoBase + 4})` : ''
+      const ov = res.overflow ? `\n\n(${res.overflow} mês(es) além do 7º ano somados em dez/${res.anoBase + 6})` : ''
       alert(`✅ Exportado para o Orçamento.\n\nEmpreendimento: ${res.empreendimento}\nCenário: ${res.cenario}\nHorizonte: ${res.anoBase}–${res.anoBase + 4}\n${linhas}${ov}`)
     } catch (err) {
       alert('Erro ao exportar: ' + err.message)

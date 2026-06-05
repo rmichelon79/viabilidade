@@ -39,7 +39,7 @@ export function acumular(r, premissas, anoBase) {
     let ano = base.year + Math.floor(mi / 12)
     let mes = (mi % 12) + 1
     if (ano < anoBase) { ano = anoBase; mes = 1 }
-    if (ano > anoBase + 4) { ano = anoBase + 4; mes = 12; overflow++ }
+    if (ano > anoBase + 6) { ano = anoBase + 6; mes = 12; overflow++ }
     for (const m of MAP) {
       const v = ((m.get(r) || [])[t] || 0) * m.sinal
       if (Math.abs(v) < 0.005) continue
@@ -72,7 +72,7 @@ export async function exportarParaOrcamento(r, premissas, cenarioLabel) {
   }
 
   const { acc, overflow } = acumular(r, premissas, anoBase)
-  const anos = Array.from({ length: 5 }, (_, i) => anoBase + i)
+  const anos = Array.from({ length: 7 }, (_, i) => anoBase + i)
   const resumo = []
 
   for (const ano of anos) {
