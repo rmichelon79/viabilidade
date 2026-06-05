@@ -85,14 +85,16 @@ export function calcScenario(p, unidades, sc, nome) {
   const perm = d(p.permutaFinanceira)
   const ret = d(p.impostoRET)
   const recBrutaTotal = vgvAjustado
-  const permutaTotal = recBrutaTotal * perm
+  // Permuta financeira incide sobre o VGV BRUTO (valor cheio), não sobre o ajustado.
+  const permutaTotal = vgvBruto * perm
   const impostosTotal = recBrutaTotal * ret
   const recLiqTotal = recBrutaTotal - permutaTotal - impostosTotal
 
   // Monthly net receipts (scaled to canonical total to avoid INCC drift)
   const rawTotal = recBruta.reduce((a, b) => a + b, 0)
   const scale = rawTotal > 0 ? recBrutaTotal / rawTotal : 1
-  const recLiqMensal = recBruta.map(r => r * scale * (1 - perm - ret))
+  const fracLiq = recBrutaTotal > 0 ? recLiqTotal / recBrutaTotal : 0
+  const recLiqMensal = recBruta.map(r => r * scale * fracLiq)
 
   // === CUSTOS MENSAIS ===
   const z = () => new Array(totalM + 1).fill(0)
