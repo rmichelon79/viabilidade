@@ -2,6 +2,7 @@
 // Cria uma NOVA versão por ano (não apaga as atuais). Mapeia linha→conta (por código)
 // e mês de projeto→(ano,mês) pela data base. Juros/amortização entram negativos.
 import { SBC as supabase } from './supabase.js'
+import { getEmpId } from './store.js'
 
 // linha do fluxo → conta do plano (código) + sinal
 export const MAP = [
@@ -58,9 +59,13 @@ export async function exportarParaOrcamento(r, premissas, cenarioLabel) {
   const { data: emps, error: e1 } = await supabase
     .from('empreendimentos').select('id,codigo,nome,ano_base')
   if (e1) throw new Error(e1.message)
-  const up = nome.toUpperCase()
-  const emp = (emps || []).find(e => e.codigo.toUpperCase() === up || (e.nome || '').toUpperCase() === up)
-  if (!emp) throw new Error(`Empreendimento "${nome}" não encontrado no orçamento. O nome da premissa precisa casar com o código/nome de um empreendimento (ex: ALTANA).`)
+  const empId = getEmpId()
+  let emp = empId ? (emps || []).find(e => e.id === empId) : null
+  if (!emp) {
+    const up = nome.toUpperCase()
+    emp = (emps || []).find(e => e.codigo.toUpperCase() === up || (e.nome || '').toUpperCase() === up)
+  }
+  if (!emp) throw new Error(`Empreendimento "${nome}" não encontrado no orçamento.`)
   const anoBase = emp.ano_base || parseDataBase(premissas.data).year
 
   const { data: contas, error: e2 } = await supabase.from('contas').select('id,codigo')

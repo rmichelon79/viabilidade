@@ -1,6 +1,7 @@
 // Análises salvas — agora no Supabase (tabela viab_analises), compartilhadas e
 // persistentes. exportJSON/importJSON continuam por arquivo (inalterados).
 import { SBC as supabase } from './supabase.js'
+import { getEmpId } from './store.js'
 
 function fmtDate(iso) {
   try {
@@ -11,11 +12,14 @@ function fmtDate(iso) {
 }
 
 export async function getSaved() {
-  const { data, error } = await supabase
+  const empId = getEmpId()
+  let q = supabase
     .from('viab_analises')
     .select('id,nome,criado_em,payload')
     .order('criado_em', { ascending: false })
     .limit(50)
+  if (empId) q = q.eq('empreendimento_id', empId)
+  const { data, error } = await q
   if (error) return []
   return (data || []).map(r => ({ id: r.id, name: r.nome, date: fmtDate(r.criado_em), state: r.payload }))
 }
@@ -23,7 +27,7 @@ export async function getSaved() {
 export async function saveAnalysis(name, state) {
   const { data, error } = await supabase
     .from('viab_analises')
-    .insert({ nome: name, payload: JSON.parse(JSON.stringify(state)) })
+    .insert({ nome: name, payload: JSON.parse(JSON.stringify(state)), empreendimento_id: getEmpId() })
     .select('id,nome,criado_em,payload')
     .single()
   if (error) throw new Error(error.message)

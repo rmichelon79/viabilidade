@@ -1,10 +1,11 @@
 import { initAuth, logout } from './auth.js'
+import { SBC as supabase } from './supabase.js'
 import { render as renderPremissas } from './pages/premissas.js'
 import { render as renderTabela } from './pages/tabela.js'
 import { render as renderCenarios, destroy as destroyCenarios } from './pages/cenarios.js'
 import { render as renderResultados, destroy as destroyResultados } from './pages/resultados.js'
 import { render as renderFluxo, update as updateFluxo } from './pages/fluxo.js'
-import { subscribe, resetAll, getState, loadState, loadRemote } from './store.js'
+import { subscribe, resetAll, getState, loadState, selectEmpreendimento, getEmpId, getLastEmpId } from './store.js'
 import { getSaved, saveAnalysis, deleteAnalysis, exportJSON, importJSON } from './save.js'
 
 const PAGES = {
@@ -16,6 +17,64 @@ const PAGES = {
 }
 
 let _currentPage = null
+let _empreendimentos = []
+
+async function carregarEmpreendimentos() {
+  try {
+    const { data, error } = await supabase
+      .from('empreendimentos').select('id,codigo,nome,status')
+      .in('status', ['em_estudo', 'ativo']).order('codigo')
+    if (error) throw error
+    return data || []
+  } catch (e) { console.warn('empreendimentos:', e); return [] }
+}
+
+function renderEmpSelector() {
+  let host = document.getElementById('emp-selector')
+  if (!host) {
+    host = document.createElement('div')
+    host.id = 'emp-selector'
+    host.style.cssText = 'padding:12px 16px;border-bottom:1px solid #1e293b'
+    document.querySelector('.sidebar-logo')?.insertAdjacentElement('afterend', host)
+  }
+  const cur = getEmpId()
+  host.innerHTML = `
+    <label style="font-size:0.62rem;color:#64748b;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px">Empreendimento</label>
+    <select id="emp-sel" style="width:100%;padding:7px 8px;background:#0f172a;border:1px solid #334155;border-radius:6px;color:#f8fafc;font-size:0.82rem">
+      ${_empreendimentos.map(e => `<option value="${e.id}" ${e.id === cur ? 'selected' : ''}>${esc(e.codigo)} — ${esc(e.nome)}${e.status === 'em_estudo' ? ' (estudo)' : ''}</option>`).join('')}
+    </select>
+    <button id="emp-novo" style="width:100%;margin-top:6px;padding:6px;background:transparent;border:1px solid #334155;color:#94a3b8;border-radius:6px;font-size:0.72rem;cursor:pointer">➕ Novo (em estudo)</button>
+  `
+  document.getElementById('emp-sel').addEventListener('change', async e => {
+    const id = e.target.value
+    const emp = _empreendimentos.find(x => x.id === id)
+    await selectEmpreendimento(id, emp?.nome)
+    navigate(_currentPage || 'premissas')
+  })
+  document.getElementById('emp-novo').addEventListener('click', novoEmpreendimento)
+}
+
+async function novoEmpreendimento() {
+  const nome = prompt('Nome do novo empreendimento (em estudo):')
+  if (!nome || !nome.trim()) return
+  const sugest = nome.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10)
+  const codigo = (prompt('Código curto (ex: NOVA):', sugest) || '').trim().toUpperCase()
+  if (!codigo) return
+  try {
+    const { data, error } = await supabase.from('empreendimentos')
+      .insert({ codigo, nome: nome.trim(), status: 'em_estudo', ano_base: new Date().getFullYear() })
+      .select('id,codigo,nome,status').single()
+    if (error) throw error
+    _empreendimentos.push(data)
+    _empreendimentos.sort((a, b) => a.codigo.localeCompare(b.codigo))
+    await selectEmpreendimento(data.id, data.nome)
+    renderEmpSelector()
+    navigate(_currentPage || 'premissas')
+    flashMsg('✅ Empreendimento criado: ' + data.codigo)
+  } catch (err) {
+    alert('Erro ao criar empreendimento: ' + err.message + '\n(criar empreendimento pode exigir permissão de admin)')
+  }
+}
 
 function navigate(page) {
   // Destroy current page if needed
@@ -130,7 +189,14 @@ function init() {
 
 document.addEventListener('DOMContentLoaded', () => {
   initAuth(async () => {
-    await loadRemote()
+    _empreendimentos = await carregarEmpreendimentos()
+    let empId = getLastEmpId()
+    if (!_empreendimentos.find(e => e.id === empId)) empId = _empreendimentos[0]?.id || null
+    if (empId) {
+      const emp = _empreendimentos.find(e => e.id === empId)
+      await selectEmpreendimento(empId, emp?.nome)
+    }
+    renderEmpSelector()
     init()
     wireModalClose()
     document.getElementById('btn-logout')?.addEventListener('click', () => {
