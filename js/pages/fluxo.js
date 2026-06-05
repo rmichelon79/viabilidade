@@ -1,5 +1,6 @@
 import { getState } from '../store.js'
 import { calcAll } from '../calc.js'
+import { exportarParaOrcamento } from '../exportarOrcamento.js'
 
 const KEYS   = ['otimista', 'base', 'pessimista']
 const LABELS = { otimista: 'Otimista', base: 'Base', pessimista: 'Pessimista' }
@@ -22,11 +23,35 @@ export function render(container) {
       background:#fff;color:#475569;font-size:0.75rem;font-weight:600;cursor:pointer">
       ☰ Custos detalhados
     </button>
+    <button id="fc-export" style="padding:5px 12px;border-radius:6px;border:1px solid #2563eb;
+      background:#2563eb;color:#fff;font-size:0.75rem;font-weight:600;cursor:pointer">
+      ⬆ Exportar p/ Orçamento
+    </button>
   </div>
 </div>
 <div id="fc-root"></div>
 `
   renderTabs(container)
+  container.querySelector('#fc-export').addEventListener('click', async (ev) => {
+    const btn = ev.currentTarget
+    const p = getState().premissas
+    if (!confirm(`Exportar o cenário ${LABELS[_activeKey]} de "${p.nome}" para o Orçamento?\n\nCria uma NOVA versão por ano (não apaga as versões atuais).`)) return
+    btn.disabled = true
+    const txt = btn.textContent
+    btn.textContent = 'Exportando…'
+    try {
+      const r = calcAll(getState())[_activeKey]
+      const res = await exportarParaOrcamento(r, p, LABELS[_activeKey])
+      const linhas = res.resumo.map(x => `  ${x.ano} v${x.versao}: ${x.lancamentos} lançamentos`).join('\n')
+      const ov = res.overflow ? `\n\n(${res.overflow} mês(es) além do 5º ano somados em dez/${res.anoBase + 4})` : ''
+      alert(`✅ Exportado para o Orçamento.\n\nEmpreendimento: ${res.empreendimento}\nCenário: ${res.cenario}\nHorizonte: ${res.anoBase}–${res.anoBase + 4}\n${linhas}${ov}`)
+    } catch (err) {
+      alert('Erro ao exportar: ' + err.message)
+    } finally {
+      btn.disabled = false
+      btn.textContent = txt
+    }
+  })
   container.querySelector('#fc-toggle').addEventListener('click', e => {
     _detalhado = !_detalhado
     e.target.style.background = _detalhado ? '#f1f5f9' : '#fff'
