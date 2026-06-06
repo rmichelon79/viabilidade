@@ -195,7 +195,9 @@ export function calcScenario(p, unidades, sc, nome) {
   const margemRec = recLiqTotal > 0 ? resultOp / recLiqTotal : 0
 
   // === FINANCIAMENTO ===
-  const volumeFinanc    = custoDireto * d(p.financiamentoPct)
+  // Base = custo TOTAL de obra (direto + indireto), igual à linha cObra (C08+C09).
+  const custoObraTotal  = custoDireto + custoIndir
+  const volumeFinanc    = custoObraTotal * d(p.financiamentoPct)
   // Desembolsos seguem a CurvaS a partir do mês de início do financiamento
   // (mínimo = mesLanc, pois obra só começa no lançamento)
   const mesInicioFinanc = Math.max(mesLanc, (p.mesInicioFinanciamento || 0) | 0)
