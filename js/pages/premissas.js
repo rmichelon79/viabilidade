@@ -89,7 +89,8 @@ function fmtCol(col, v) {
 }
 
 // ─── Render ──────────────────────────────────────────────────────────────────
-function costTable(groupId) {
+function costTable(groupId, showPctCO = true) {
+  const cols = showPctCO ? ['global', 'pctVGV', 'pctCO'] : ['global', 'pctVGV']
   const rowsHtml = COST_ROWS
     .map((row, i) => ({ row, i }))
     .filter(x => x.row.group === groupId)
@@ -98,11 +99,12 @@ function costTable(groupId) {
         if (isEditable(row, c)) return `<td class="td-r"><input class="td-input td-num" type="text" inputmode="decimal" data-r="${i}" data-c="${c}"></td>`
         return `<td class="td-r td-calc" data-cc="${c}" data-rr="${i}"></td>`
       }
-      return `<tr data-row="${i}"><td class="fl">${row.desc}</td>${cellOf('global')}${cellOf('pctVGV')}${cellOf('pctCO')}</tr>`
+      return `<tr data-row="${i}"><td class="fl">${row.desc}</td>${cols.map(cellOf).join('')}</tr>`
     }).join('')
+  const thPctCO = showPctCO ? '<th class="th-r">% custo obra</th>' : ''
   return `
   <table class="data-table prem-mini">
-    <thead><tr><th>Descrição</th><th class="th-r">Valor global</th><th class="th-r">% VGV</th><th class="th-r">% custo obra</th></tr></thead>
+    <thead><tr><th>Descrição</th><th class="th-r">Valor global (R$)</th><th class="th-r">% VGV</th>${thPctCO}</tr></thead>
     <tbody>${rowsHtml}</tbody>
   </table>`
 }
@@ -123,22 +125,22 @@ export function render(container) {
   .prem-card .card-title { display:flex; justify-content:space-between; align-items:baseline; }
   .prem-card .ct-sub { font-weight:400; color:#64748b; font-size:.72rem; letter-spacing:0; text-transform:none; }
   .anchor-bar { display:flex; gap:28px; flex-wrap:wrap; }
+  .emp-title { font-size:1.2rem; font-weight:600; color:#0f172a; }
 </style>
 
 <div class="sections-grid">
 
   <div class="card">
-    <div class="card-title">DADOS DO ESTUDO</div>
-    <div class="field-stack"><label class="fl-s">Nome do empreendimento</label><input class="fi" type="text" data-key="nome"></div>
-    <div class="field-stack"><label class="fl-s">Endereço</label><input class="fi" type="text" data-key="endereco"></div>
+    <div class="card-title">EMPREENDIMENTO</div>
+    <div class="emp-title" id="prem-emp-nome">—</div>
   </div>
 
   <div class="card">
     <div class="card-title">LINHA DO TEMPO</div>
     <div class="field-row"><label class="fl">Data de início</label><input class="fi w100" type="date" data-key="data"></div>
     <div class="field-row"><label class="fl">Meses de desenvolvimento</label><div class="fi-unit"><input class="fi w80" type="number" min="0" data-key="mesesDesenvolvimento"><span class="unit">m</span></div></div>
-    <div class="field-row"><label class="fl">Prazo de obra</label><div class="fi-unit"><input class="fi w80" type="number" min="1" data-key="prazoObra"><span class="unit">m</span></div></div>
     <div class="field-row"><label class="fl">Duração do lançamento</label><div class="fi-unit"><input class="fi w80" type="number" min="1" data-key="duracaoLancamento"><span class="unit">m</span></div></div>
+    <div class="field-row"><label class="fl">Prazo de obra</label><div class="fi-unit"><input class="fi w80" type="number" min="1" data-key="prazoObra"><span class="unit">m</span></div></div>
   </div>
 
   <div class="card">
@@ -148,13 +150,13 @@ export function render(container) {
       <div><div class="kpi-mini-label">Custo total de obra</div><div class="kpi-mini-val" id="anchor-co">–</div></div>
     </div>
     <div class="field-row"><label class="fl">Imposto sobre receita — RET</label><div class="fi-unit"><input class="fi w80" type="number" step="0.01" data-key="impostoRET"><span class="unit">%</span></div></div>
-    <div class="field-row"><label class="fl">INCC / correção durante obra</label><div class="fi-unit"><input class="fi w80" type="number" step="0.01" data-key="inccMensal"><span class="unit">% a.m.</span></div></div>
-    <div class="field-row"><label class="fl">Taxa de desconto (VPL)</label><div class="fi-unit"><input class="fi w80" type="number" step="0.5" data-key="taxaDescontoAA"><span class="unit">% a.a.</span></div></div>
+    <div class="field-row"><label class="fl">INCC / correção durante obra (ao mês)</label><div class="fi-unit"><input class="fi w80" type="number" step="0.01" data-key="inccMensal"><span class="unit">%</span></div></div>
+    <div class="field-row"><label class="fl">Taxa de desconto — VPL (ao ano)</label><div class="fi-unit"><input class="fi w80" type="number" step="0.5" data-key="taxaDescontoAA"><span class="unit">%</span></div></div>
   </div>
 
   <div class="card prem-card">
     <div class="card-title">PERMUTA E CUSTOS DO TERRENO</div>
-    ${costTable('terreno')}
+    ${costTable('terreno', false)}
   </div>
 
   <div class="card prem-card">
@@ -166,19 +168,19 @@ export function render(container) {
     <div class="card-title">CUSTOS DE OBRA</div>
     <div class="field-row"><label class="fl">Área equivalente de construção</label><div class="fi-unit"><input class="fi w100" type="number" step="10" data-key="areaEquivalente"><span class="unit">m²</span></div></div>
     <div class="field-row"><label class="fl">Custo de construção</label><div class="fi-unit"><input class="fi w100" type="number" step="100" data-key="custoM2"><span class="unit">R$/m²</span></div></div>
-    <div class="field-row"><label class="fl">Custo indireto (BDI, fiscalização)</label><div class="fi-unit"><input class="fi w80" type="number" step="0.5" data-key="custoIndireto"><span class="unit">% direto</span></div></div>
+    <div class="field-row"><label class="fl">Custo indireto (BDI, fiscalização) — sobre o custo direto</label><div class="fi-unit"><input class="fi w80" type="number" step="0.5" data-key="custoIndireto"><span class="unit">%</span></div></div>
     <div class="divider"></div>
-    ${costTable('obra')}
+    ${costTable('obra', false)}
   </div>
 
   <div class="card prem-card">
     <div class="card-title">CUSTOS COMERCIAIS</div>
-    ${costTable('comercial')}
+    ${costTable('comercial', false)}
   </div>
 
   <div class="card prem-card">
     <div class="card-title">DESPESAS DE MARKETING</div>
-    ${costTable('marketing')}
+    ${costTable('marketing', false)}
   </div>
 
   <div class="card prem-card">
@@ -188,8 +190,11 @@ export function render(container) {
 
   <div class="card">
     <div class="card-title">FINANCIAMENTO</div>
-    <div class="field-row"><label class="fl">Financiamento (% custo direto)</label><div class="fi-unit"><input class="fi w80" type="number" step="1" data-key="financiamentoPct"><span class="unit">%</span></div></div>
-    <div class="field-row"><label class="fl">Taxa de juros</label><div class="fi-unit"><input class="fi w80" type="number" step="0.1" data-key="taxaJurosAA"><span class="unit">% a.a.</span></div></div>
+    <div class="anchor-bar" style="margin-bottom:12px">
+      <div><div class="kpi-mini-label">Valor do financiamento</div><div class="kpi-mini-val" id="anchor-financ">–</div></div>
+    </div>
+    <div class="field-row"><label class="fl">Financiamento — sobre o custo total de obra</label><div class="fi-unit"><input class="fi w80" type="number" step="1" data-key="financiamentoPct"><span class="unit">%</span></div></div>
+    <div class="field-row"><label class="fl">Taxa de juros (ao ano)</label><div class="fi-unit"><input class="fi w80" type="number" step="0.1" data-key="taxaJurosAA"><span class="unit">%</span></div></div>
     <div class="field-row"><label class="fl">Mês de início do financiamento</label><div class="fi-unit"><input class="fi w80" type="number" step="1" data-key="mesInicioFinanciamento"><span class="unit">m</span></div></div>
     <div class="field-row"><label class="fl">Prazo de amortização (0 = na entrega)</label><div class="fi-unit"><input class="fi w80" type="number" step="1" data-key="prazoAmortizacao"><span class="unit">m</span></div></div>
   </div>
@@ -207,7 +212,7 @@ export function render(container) {
     if (el.dataset.key !== undefined) {
       const v = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value
       setPremissas({ [el.dataset.key]: v })
-      if (['custoM2', 'areaEquivalente', 'custoIndireto'].includes(el.dataset.key)) refreshGrid(container, el)
+      if (['custoM2', 'areaEquivalente', 'custoIndireto', 'financiamentoPct'].includes(el.dataset.key)) refreshGrid(container, el)
       return
     }
     if (el.dataset.c !== undefined) {
@@ -236,4 +241,6 @@ function refreshGrid(container, exceptEl) {
   const set = (id, t) => { const el = container.querySelector('#' + id); if (el) el.textContent = t }
   set('anchor-vgv', brl(A.VGV))
   set('anchor-co', brl(A.CO))
+  set('anchor-financ', brl(A.CO * (p.financiamentoPct || 0) / 100))
+  set('prem-emp-nome', p.nome || '(empreendimento sem nome)')
 }
