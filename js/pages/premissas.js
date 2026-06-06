@@ -128,6 +128,10 @@ export function render(container) {
   .anchor-bar { display:flex; gap:28px; flex-wrap:wrap; }
   .prem-emp-top { font-size:1.4rem; font-weight:700; color:#0f172a; margin-bottom:2px; }
   .obra-total { display:flex; justify-content:space-between; align-items:baseline; margin-top:10px; padding-top:10px; border-top:2px solid #0f172a; font-weight:700; font-size:1.05rem; color:#0f172a; }
+  .obra-total #obra-total-pct { margin-left:18px; }
+  .financ-val { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; font-weight:700; color:#0f172a; }
+  .prem-mini th.th-r, .prem-mini td.td-r { text-align:right; }
+  .prem-mini .td-input { text-align:right; }
 </style>
 
 <div class="sections-grid">
@@ -168,7 +172,7 @@ export function render(container) {
     <div class="field-row"><label class="fl">Custo indireto (BDI, fiscalização) — sobre o custo direto</label><div class="fi-unit"><input class="fi w80" type="number" step="0.5" data-key="custoIndireto"><span class="unit">%</span></div></div>
     <div class="divider"></div>
     ${costTable('obra', false)}
-    <div class="obra-total"><span>Custo total de obra</span><span id="obra-total-val">–</span></div>
+    <div class="obra-total"><span>Custo total de obra</span><span><span id="obra-total-val">–</span><span id="obra-total-pct">–</span></span></div>
   </div>
 
   <div class="card prem-card">
@@ -188,9 +192,7 @@ export function render(container) {
 
   <div class="card">
     <div class="card-title">FINANCIAMENTO</div>
-    <div class="anchor-bar" style="margin-bottom:12px">
-      <div><div class="kpi-mini-label">Valor do financiamento</div><div class="kpi-mini-val" id="anchor-financ">–</div></div>
-    </div>
+    <div class="financ-val"><span>Valor do financiamento</span><span id="anchor-financ">–</span></div>
     <div class="field-row"><label class="fl">Financiamento — sobre o custo total de obra</label><div class="fi-unit"><input class="fi w80" type="number" step="1" data-key="financiamentoPct"><span class="unit">%</span></div></div>
     <div class="field-row"><label class="fl">Taxa de juros (ao ano)</label><div class="fi-unit"><input class="fi w80" type="number" step="0.1" data-key="taxaJurosAA"><span class="unit">%</span></div></div>
     <div class="field-row"><label class="fl">Mês de início do financiamento</label><div class="fi-unit"><input class="fi w80" type="number" step="1" data-key="mesInicioFinanciamento"><span class="unit">m</span></div></div>
@@ -240,6 +242,7 @@ function refreshGrid(container, exceptEl) {
   set('anchor-vgv', brl(A.VGV))
   set('anchor-co', brl(A.CO))
   set('anchor-financ', brl(A.CO * (p.financiamentoPct || 0) / 100))
-  set('obra-total-val', brl(A.CO) + '  ·  ' + nf2.format(A.VGV ? A.CO / A.VGV * 100 : 0) + '% VGV')
+  set('obra-total-val', brl(A.CO))
+  set('obra-total-pct', nf2.format(A.VGV ? A.CO / A.VGV * 100 : 0) + '%')
   set('prem-emp-nome', p.nome || '(empreendimento sem nome)')
 }
