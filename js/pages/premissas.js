@@ -41,8 +41,8 @@ export const COST_ROWS = [
 
 const EDITAVEIS = {
   pct:      ['global', 'pctVGV', 'pctCO'],
-  obra:     ['global', 'pctVGV'],
-  indireto: ['global', 'pctVGV'],
+  obra:     [],   // só leitura — edita pelos campos R$/m² e área acima
+  indireto: [],   // só leitura — edita pelo campo % indireto acima
 }
 function isEditable(row, col) { return EDITAVEIS[row.kind].includes(col) }
 
@@ -240,6 +240,6 @@ function refreshGrid(container, exceptEl) {
   set('anchor-vgv', brl(A.VGV))
   set('anchor-co', brl(A.CO))
   set('anchor-financ', brl(A.CO * (p.financiamentoPct || 0) / 100))
-  set('obra-total-val', brl(A.CO))
+  set('obra-total-val', brl(A.CO) + '  ·  ' + nf2.format(A.VGV ? A.CO / A.VGV * 100 : 0) + '% VGV')
   set('prem-emp-nome', p.nome || '(empreendimento sem nome)')
 }
