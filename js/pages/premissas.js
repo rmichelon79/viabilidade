@@ -112,6 +112,7 @@ function costTable(groupId, showPctCO = true) {
 export function render(container) {
   container.innerHTML = `
 <div class="page-header">
+  <div class="prem-emp-top" id="prem-emp-nome">—</div>
   <h1 class="page-title">Premissas</h1>
   <p class="page-sub">Custos interligados (edite valor global, % VGV ou % custo obra — os outros recalculam)</p>
 </div>
@@ -125,15 +126,11 @@ export function render(container) {
   .prem-card .card-title { display:flex; justify-content:space-between; align-items:baseline; }
   .prem-card .ct-sub { font-weight:400; color:#64748b; font-size:.72rem; letter-spacing:0; text-transform:none; }
   .anchor-bar { display:flex; gap:28px; flex-wrap:wrap; }
-  .emp-title { font-size:1.2rem; font-weight:600; color:#0f172a; }
+  .prem-emp-top { font-size:1.4rem; font-weight:700; color:#0f172a; margin-bottom:2px; }
+  .obra-total { display:flex; justify-content:space-between; align-items:baseline; margin-top:10px; padding-top:10px; border-top:2px solid #0f172a; font-weight:700; font-size:1.05rem; color:#0f172a; }
 </style>
 
 <div class="sections-grid">
-
-  <div class="card">
-    <div class="card-title">EMPREENDIMENTO</div>
-    <div class="emp-title" id="prem-emp-nome">—</div>
-  </div>
 
   <div class="card">
     <div class="card-title">LINHA DO TEMPO</div>
@@ -171,6 +168,7 @@ export function render(container) {
     <div class="field-row"><label class="fl">Custo indireto (BDI, fiscalização) — sobre o custo direto</label><div class="fi-unit"><input class="fi w80" type="number" step="0.5" data-key="custoIndireto"><span class="unit">%</span></div></div>
     <div class="divider"></div>
     ${costTable('obra', false)}
+    <div class="obra-total"><span>Custo total de obra</span><span id="obra-total-val">–</span></div>
   </div>
 
   <div class="card prem-card">
@@ -242,5 +240,6 @@ function refreshGrid(container, exceptEl) {
   set('anchor-vgv', brl(A.VGV))
   set('anchor-co', brl(A.CO))
   set('anchor-financ', brl(A.CO * (p.financiamentoPct || 0) / 100))
+  set('obra-total-val', brl(A.CO))
   set('prem-emp-nome', p.nome || '(empreendimento sem nome)')
 }
