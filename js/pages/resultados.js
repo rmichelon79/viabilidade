@@ -19,7 +19,6 @@ export function render(container) {
   </div>
   <div class="no-print" style="display:flex;gap:8px;align-items:center;margin-top:4px">
     <button class="btn-sm btn-export" id="btn-export-xls"  style="display:flex;align-items:center;gap:6px">📊 Exportar XLS</button>
-    <button class="btn-sm btn-export" id="btn-export-json" style="display:flex;align-items:center;gap:6px">⬇ Exportar JSON</button>
     <button class="btn-sm btn-export" id="btn-print"       style="display:flex;align-items:center;gap:6px">🖨 Imprimir / PDF</button>
   </div>
 </div>
