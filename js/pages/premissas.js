@@ -243,6 +243,6 @@ function refreshGrid(container, exceptEl) {
   set('anchor-co', brl(A.CO))
   set('anchor-financ', brl(A.CO * (p.financiamentoPct || 0) / 100))
   set('obra-total-val', brl(A.CO))
-  set('obra-total-pct', nf2.format(A.VGV ? A.CO / A.VGV * 100 : 0) + '%')
+  set('obra-total-pct', nf2.format(A.VGV ? A.CO / A.VGV * 100 : 0))
   set('prem-emp-nome', p.nome || '(empreendimento sem nome)')
 }
