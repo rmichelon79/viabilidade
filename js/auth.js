@@ -5,7 +5,7 @@ import { SBC } from './supabase.js'
 
 export async function logout() {
   try { await SBC.auth.signOut() } catch (_) {}
-  location.reload()
+  location.href = 'https://rmichelon79.github.io/sopra-portal/'
 }
 
 // Verifica se o usuário logado tem acesso ao app 'viabilidade'
