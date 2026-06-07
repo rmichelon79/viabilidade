@@ -121,9 +121,10 @@ export function calcScenario(p, unidades, sc, nome) {
   // C02 ITBI: month 0
   cITBI[0] = vgvBruto * d(p.itbiRegistro)
 
-  // C03 IPTU: spread evenly over mesesDesenvolvimento
-  const iptuTotal = vgvBruto * d(p.iptuAnual) * mesLanc / 12
-  for (let t = 0; t < md; t++) cIPTU[t] = iptuTotal / md
+  // C03 IPTU: incide TODO mês desde o início do empreendimento até a entrega
+  // (IPTU mensal = % a.a. / 12). Antes contava só os meses de desenvolvimento.
+  const iptuMensal = vgvBruto * d(p.iptuAnual) / 12
+  for (let t = 0; t <= mesEntr && t <= totalM; t++) cIPTU[t] = iptuMensal
 
   // C04–C05 Projetos + Alvarás: spread over pre-launch
   const devPreLanc = vgvBruto * (d(p.projetos) + d(p.alvaras))
