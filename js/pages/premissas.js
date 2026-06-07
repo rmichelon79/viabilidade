@@ -26,6 +26,7 @@ export const COST_ROWS = [
   { group: 'terreno',   desc: 'Permuta física do terreno',     kind: 'pct', key: 'permutaFisica' },
   { group: 'terreno',   desc: 'Aquisição do Terreno',          kind: 'pct', key: 'aquisicaoTerreno' },
   { group: 'terreno',   desc: 'Legalização do Terreno (ITBI)', kind: 'pct', key: 'itbiRegistro' },
+  { group: 'terreno',   desc: 'IPTU do terreno (até a entrega)', kind: 'iptu', key: 'iptuAnual' },
   { group: 'incorp',    desc: 'Consultorias e Projetos de Incorporação', kind: 'pct', key: 'projetos' },
   { group: 'incorp',    desc: 'Alvarás e licenças',            kind: 'pct', key: 'alvaras' },
   { group: 'incorp',    desc: 'Taxas e Registros da Incorporação', kind: 'pct', key: 'registrosInc' },
@@ -40,6 +41,7 @@ export const COST_ROWS = [
 
 const EDITAVEIS = {
   pct:      ['global', 'pctVGV', 'pctCO'],
+  iptu:     ['global', 'pctVGV'],   // total e % efetivo editáveis (back-solve da taxa a.a.)
   obra:     [],   // só leitura — edita pelos campos R$/m² e área acima
   indireto: [],   // só leitura — edita pelo campo % indireto acima
 }
@@ -51,6 +53,11 @@ export function readRow(row, p, A) {
     const pctVGV = p[row.key] || 0
     const global = pctVGV / 100 * A.VGV
     return { global, pctVGV, pctCO: safe(global, A.CO) * 100 }
+  }
+  if (row.kind === 'iptu') {
+    const meses = (p.mesesDesenvolvimento | 0) + (p.prazoObra | 0) + 1
+    const global = A.VGV * (p.iptuAnual || 0) / 100 * meses / 12
+    return { global, pctVGV: safe(global, A.VGV) * 100, pctCO: safe(global, A.CO) * 100 }
   }
   if (row.kind === 'obra') {
     const global = (p.areaEquivalente || 0) * (p.custoM2 || 0)
@@ -67,6 +74,11 @@ export function writeRow(row, col, val, p, A) {
     if (col === 'pctVGV') return { [row.key]: v }
     if (col === 'global') return { [row.key]: safe(v, A.VGV) * 100 }
     if (col === 'pctCO')  return { [row.key]: safe(v / 100 * A.CO, A.VGV) * 100 }
+  } else if (row.kind === 'iptu') {
+    const meses = (p.mesesDesenvolvimento | 0) + (p.prazoObra | 0) + 1
+    const fator = A.VGV * meses / 12   // global = iptuAnual/100 * fator
+    if (col === 'global') return { iptuAnual: safe(v, fator) * 100 }
+    if (col === 'pctVGV') return { iptuAnual: safe(v / 100 * A.VGV, fator) * 100 }
   } else if (row.kind === 'obra') {
     const area = p.areaEquivalente || 0
     if (col === 'global') return { custoM2: safe(v, area) }
@@ -159,9 +171,6 @@ export function render(container) {
   <div class="card prem-card">
     <div class="card-title">PERMUTA E CUSTOS DO TERRENO</div>
     ${costTable('terreno', false)}
-    <div class="divider"></div>
-    <div class="field-row"><label class="fl">IPTU do terreno (ao ano)</label><div class="fi-unit"><input class="fi w80" type="number" step="0.01" data-key="iptuAnual"><span class="unit">%</span></div></div>
-    <div class="iptu-calc"><span>IPTU total (até a entrega)</span><span><span id="iptu-total-val">–</span><span id="iptu-total-pct">–</span></span></div>
   </div>
 
   <div class="card prem-card">
@@ -248,9 +257,5 @@ function refreshGrid(container, exceptEl) {
   set('anchor-financ', brl(A.CO * (p.financiamentoPct || 0) / 100))
   set('obra-total-val', brl(A.CO))
   set('obra-total-pct', nf2.format(A.VGV ? A.CO / A.VGV * 100 : 0))
-  const iptuMeses = (p.mesesDesenvolvimento | 0) + (p.prazoObra | 0) + 1
-  const iptuTotal = A.VGV * (p.iptuAnual || 0) / 100 * iptuMeses / 12
-  set('iptu-total-val', brl(iptuTotal))
-  set('iptu-total-pct', nf2.format(A.VGV ? iptuTotal / A.VGV * 100 : 0) + '% do VGV')
   set('prem-emp-nome', p.nome || '(empreendimento sem nome)')
 }
