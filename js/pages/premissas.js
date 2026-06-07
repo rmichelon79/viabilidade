@@ -26,7 +26,6 @@ export const COST_ROWS = [
   { group: 'terreno',   desc: 'Permuta física do terreno',     kind: 'pct', key: 'permutaFisica' },
   { group: 'terreno',   desc: 'Aquisição do Terreno',          kind: 'pct', key: 'aquisicaoTerreno' },
   { group: 'terreno',   desc: 'Legalização do Terreno (ITBI)', kind: 'pct', key: 'itbiRegistro' },
-  { group: 'terreno',   desc: 'IPTU do Terreno (a.a.)',        kind: 'pct', key: 'iptuAnual' },
   { group: 'incorp',    desc: 'Consultorias e Projetos de Incorporação', kind: 'pct', key: 'projetos' },
   { group: 'incorp',    desc: 'Alvarás e licenças',            kind: 'pct', key: 'alvaras' },
   { group: 'incorp',    desc: 'Taxas e Registros da Incorporação', kind: 'pct', key: 'registrosInc' },
@@ -130,6 +129,8 @@ export function render(container) {
   .obra-total { display:flex; justify-content:space-between; align-items:baseline; margin-top:10px; padding-top:10px; border-top:2px solid #0f172a; font-weight:700; font-size:1.05rem; color:#0f172a; }
   .obra-total #obra-total-pct { margin-left:18px; }
   .financ-val { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; font-weight:700; color:#0f172a; }
+  .iptu-calc { display:flex; justify-content:space-between; align-items:baseline; margin-top:8px; font-weight:600; color:#0f172a; }
+  .iptu-calc #iptu-total-pct { margin-left:18px; }
   .prem-mini th.th-r, .prem-mini td.td-r { text-align:right; }
   .prem-mini .td-input { text-align:right; }
 </style>
@@ -158,6 +159,9 @@ export function render(container) {
   <div class="card prem-card">
     <div class="card-title">PERMUTA E CUSTOS DO TERRENO</div>
     ${costTable('terreno', false)}
+    <div class="divider"></div>
+    <div class="field-row"><label class="fl">IPTU do terreno (ao ano)</label><div class="fi-unit"><input class="fi w80" type="number" step="0.01" data-key="iptuAnual"><span class="unit">%</span></div></div>
+    <div class="iptu-calc"><span>IPTU total (até a entrega)</span><span><span id="iptu-total-val">–</span><span id="iptu-total-pct">–</span></span></div>
   </div>
 
   <div class="card prem-card">
@@ -212,7 +216,7 @@ export function render(container) {
     if (el.dataset.key !== undefined) {
       const v = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value
       setPremissas({ [el.dataset.key]: v })
-      if (['custoM2', 'areaEquivalente', 'custoIndireto', 'financiamentoPct'].includes(el.dataset.key)) refreshGrid(container, el)
+      if (['custoM2', 'areaEquivalente', 'custoIndireto', 'financiamentoPct', 'iptuAnual', 'mesesDesenvolvimento', 'prazoObra'].includes(el.dataset.key)) refreshGrid(container, el)
       return
     }
     if (el.dataset.c !== undefined) {
@@ -244,5 +248,9 @@ function refreshGrid(container, exceptEl) {
   set('anchor-financ', brl(A.CO * (p.financiamentoPct || 0) / 100))
   set('obra-total-val', brl(A.CO))
   set('obra-total-pct', nf2.format(A.VGV ? A.CO / A.VGV * 100 : 0))
+  const iptuMeses = (p.mesesDesenvolvimento | 0) + (p.prazoObra | 0) + 1
+  const iptuTotal = A.VGV * (p.iptuAnual || 0) / 100 * iptuMeses / 12
+  set('iptu-total-val', brl(iptuTotal))
+  set('iptu-total-pct', nf2.format(A.VGV ? iptuTotal / A.VGV * 100 : 0) + '% do VGV')
   set('prem-emp-nome', p.nome || '(empreendimento sem nome)')
 }
