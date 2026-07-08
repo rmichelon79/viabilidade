@@ -203,12 +203,17 @@ export function calcScenario(p, unidades, sc, nome) {
   // (mínimo = mesLanc, pois obra só começa no lançamento)
   const mesInicioFinanc = Math.max(mesLanc, (p.mesInicioFinanciamento || 0) | 0)
   const disb = new Array(totalM + 1).fill(0)
+  // Meses disponíveis para desembolso: do início do financiamento até a entrega
+  // (o banco não libera após a obra concluída). Renormaliza a curva nessa janela
+  // para que o volume financiado seja TOTALMENTE desembolsado (soma = volumeFinanc),
+  // mesmo quando o financiamento começa depois do lançamento.
+  const janela = []
   for (let t = 0; t < p.prazoObra; t++) {
     const m = mesInicioFinanc + t
-    // Desembolsos limitados ao mês de entrega: banco não libera financiamento
-    // de construção após a obra estar concluída
-    if (m <= totalM && m <= mesEntr) disb[m] += volumeFinanc * curve[t]
+    if (m <= totalM && m <= mesEntr) janela.push([m, curve[t]])
   }
+  const somaJanela = janela.reduce((s, x) => s + x[1], 0) || 1
+  janela.forEach(([m, w]) => { disb[m] += volumeFinanc * w / somaJanela })
 
   let saldo = 0
   let saldoEntrega = 0
