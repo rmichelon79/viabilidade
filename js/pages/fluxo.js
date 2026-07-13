@@ -4,7 +4,7 @@ import { exportarParaOrcamento } from '../exportarOrcamento.js'
 
 const KEYS   = ['otimista', 'base', 'pessimista']
 const LABELS = { otimista: 'Otimista', base: 'Base', pessimista: 'Pessimista' }
-const COLORS = { otimista: '#16a34a', base: '#2563eb', pessimista: '#dc2626' }
+const COLORS = { otimista: '#16a34a', base: '#7AA436', pessimista: '#dc2626' }
 
 let _activeKey = 'base'
 let _detalhado = false
@@ -23,8 +23,8 @@ export function render(container) {
       background:#fff;color:#475569;font-size:0.75rem;font-weight:600;cursor:pointer">
       ☰ Custos detalhados
     </button>
-    <button id="fc-export" style="padding:5px 12px;border-radius:6px;border:1px solid #2563eb;
-      background:#2563eb;color:#fff;font-size:0.75rem;font-weight:600;cursor:pointer">
+    <button id="fc-export" style="padding:5px 12px;border-radius:6px;border:1px solid #5A7A1F;
+      background:#5A7A1F;color:#fff;font-size:0.75rem;font-weight:600;cursor:pointer">
       ⬆ Exportar p/ Orçamento
     </button>
   </div>
@@ -54,9 +54,9 @@ export function render(container) {
   })
   container.querySelector('#fc-toggle').addEventListener('click', e => {
     _detalhado = !_detalhado
-    e.target.style.background = _detalhado ? '#f1f5f9' : '#fff'
-    e.target.style.borderColor = _detalhado ? '#2563eb' : '#e2e8f0'
-    e.target.style.color       = _detalhado ? '#2563eb' : '#475569'
+    e.target.style.background = _detalhado ? '#EEF0DC' : '#fff'
+    e.target.style.borderColor = _detalhado ? '#7AA436' : '#E4DED2'
+    e.target.style.color       = _detalhado ? '#5A7A1F' : '#7C7568'
     renderTable(container)
   })
   renderTable(container)

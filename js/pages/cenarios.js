@@ -2,7 +2,7 @@ import { getState, setCenario, setAbsorcao } from '../store.js'
 
 const KEYS = ['otimista', 'base', 'pessimista']
 const LABELS = { otimista: 'Otimista', base: 'Base', pessimista: 'Pessimista' }
-const COLORS = { otimista: '#16a34a', base: '#2563eb', pessimista: '#dc2626' }
+const COLORS = { otimista: '#16a34a', base: '#7AA436', pessimista: '#dc2626' }
 
 let _charts = {}
 

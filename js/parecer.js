@@ -65,7 +65,7 @@ function svgAcum(res) {
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:200px">
     <polygon points="${area}" fill="rgba(29,158,117,.12)"/>
     <line x1="0" y1="${zeroY}" x2="${W}" y2="${zeroY}" stroke="#cbd5e1" stroke-width="1"/>
-    <polyline points="${pts}" fill="none" stroke="#1D9E75" stroke-width="2.5"/>
+    <polyline points="${pts}" fill="none" stroke="#7AA436" stroke-width="2.5"/>
   </svg>`
 }
 
@@ -76,7 +76,7 @@ function recomendacao(res, p) {
   const tirB = isFinite(b.tir) ? b.tir * 100 : null
   const margemB = b.margemFinal * 100
   if (b.vpl > 0 && (tirB === null || tirB > tdAA) && margemB >= 10 && pe.vpl >= 0)
-    return { nivel: 'GO', cor: '#1D9E75', texto: 'Projeto viável em todos os cenários analisados, com VPL positivo e margem adequada inclusive no cenário pessimista. Recomenda-se aprovação.' }
+    return { nivel: 'GO', cor: '#7AA436', texto: 'Projeto viável em todos os cenários analisados, com VPL positivo e margem adequada inclusive no cenário pessimista. Recomenda-se aprovação.' }
   if (b.vpl > 0 && margemB >= 8)
     return { nivel: 'GO CONDICIONADO', cor: '#EF9F27', texto: 'Viável no cenário base, porém sensível no pessimista. Recomenda-se aprovação condicionada à mitigação dos riscos de preço/ritmo de vendas e ao monitoramento da exposição de caixa.' }
   return { nivel: 'NÃO RECOMENDADO', cor: '#E24B4A', texto: 'Os indicadores no cenário base não atingem os patamares mínimos de retorno/margem. Recomenda-se revisar premissas (preço, custo, permuta) antes de prosseguir.' }
@@ -148,10 +148,10 @@ export function gerarParecer() {
   * { box-sizing: border-box; }
   body { font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; color: #1f2937; font-size: 12px; line-height: 1.45; margin: 0; }
   h1 { font-size: 22px; margin: 0; }
-  h2 { font-size: 14px; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #1D9E75; color: #0f172a; }
+  h2 { font-size: 14px; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #7AA436; color: #22201B; }
   .muted { color: #6b7280; }
-  .cap { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #0f172a; padding-bottom: 12px; }
-  .brand { font-size: 26px; font-weight: 800; letter-spacing: 1px; color: #0f172a; }
+  .cap { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #22201B; padding-bottom: 12px; }
+  .brand { font-size: 26px; font-weight: 800; letter-spacing: 1px; color: #22201B; }
   .badge { display: inline-block; color: #fff; font-weight: 700; padding: 6px 14px; border-radius: 6px; font-size: 14px; }
   .reco { border: 1px solid #e5e7eb; border-left: 6px solid; border-radius: 8px; padding: 12px 16px; margin-top: 8px; }
   table.t { width: 100%; border-collapse: collapse; margin-top: 4px; }
@@ -162,13 +162,13 @@ export function gerarParecer() {
   .kpis { display: flex; gap: 10px; margin-top: 10px; }
   .kpi { flex: 1; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; }
   .kpi .l { font-size: 10px; text-transform: uppercase; color: #6b7280; letter-spacing: .4px; }
-  .kpi .v { font-size: 17px; font-weight: 700; color: #0f172a; }
+  .kpi .v { font-size: 17px; font-weight: 700; color: #22201B; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   .avoid { page-break-inside: avoid; }
   .foot { margin-top: 26px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 10px; color: #9ca3af; }
   @media print { .noprint { display: none; } }
   .noprint { position: fixed; top: 10px; right: 10px; }
-  .noprint button { background: #1D9E75; color: #fff; border: 0; border-radius: 6px; padding: 10px 16px; font-size: 14px; cursor: pointer; }
+  .noprint button { background: #7AA436; color: #fff; border: 0; border-radius: 6px; padding: 10px 16px; font-size: 14px; cursor: pointer; }
 </style></head>
 <body>
   <div class="noprint"><button onclick="window.print()">Salvar como PDF</button></div>

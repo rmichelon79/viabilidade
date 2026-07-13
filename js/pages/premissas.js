@@ -137,11 +137,11 @@ export function render(container) {
   .prem-card .card-title { display:flex; justify-content:space-between; align-items:baseline; }
   .prem-card .ct-sub { font-weight:400; color:#64748b; font-size:.72rem; letter-spacing:0; text-transform:none; }
   .anchor-bar { display:flex; gap:28px; flex-wrap:wrap; }
-  .prem-emp-top { font-size:1.4rem; font-weight:700; color:#0f172a; margin-bottom:2px; }
-  .obra-total { display:flex; justify-content:space-between; align-items:baseline; margin-top:10px; padding-top:10px; border-top:2px solid #0f172a; font-weight:700; font-size:1.05rem; color:#0f172a; }
+  .prem-emp-top { font-size:1.4rem; font-weight:700; color:#22201B; margin-bottom:2px; }
+  .obra-total { display:flex; justify-content:space-between; align-items:baseline; margin-top:10px; padding-top:10px; border-top:2px solid #22201B; font-weight:700; font-size:1.05rem; color:#22201B; }
   .obra-total #obra-total-pct { margin-left:18px; }
-  .financ-val { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; font-weight:700; color:#0f172a; }
-  .iptu-calc { display:flex; justify-content:space-between; align-items:baseline; margin-top:8px; font-weight:600; color:#0f172a; }
+  .financ-val { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; font-weight:700; color:#22201B; }
+  .iptu-calc { display:flex; justify-content:space-between; align-items:baseline; margin-top:8px; font-weight:600; color:#22201B; }
   .iptu-calc #iptu-total-pct { margin-left:18px; }
   .prem-mini th.th-r, .prem-mini td.td-r { text-align:right; }
   .prem-mini .td-input { text-align:right; }

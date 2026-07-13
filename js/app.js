@@ -34,16 +34,16 @@ function renderEmpSelector() {
   if (!host) {
     host = document.createElement('div')
     host.id = 'emp-selector'
-    host.style.cssText = 'padding:12px 16px;border-bottom:1px solid #1e293b'
+    host.style.cssText = 'padding:12px 16px;border-bottom:1px solid #33302A'
     document.querySelector('.sidebar-logo')?.insertAdjacentElement('afterend', host)
   }
   const cur = getEmpId()
   host.innerHTML = `
-    <label style="font-size:0.62rem;color:#64748b;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px">Empreendimento</label>
-    <select id="emp-sel" style="width:100%;padding:7px 8px;background:#0f172a;border:1px solid #334155;border-radius:6px;color:#f8fafc;font-size:0.82rem">
+    <label style="font-size:0.62rem;color:#8C857A;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:5px">Empreendimento</label>
+    <select id="emp-sel" style="width:100%;padding:7px 8px;background:#2B2820;border:1px solid #413A2D;border-radius:6px;color:#F0EADD;font-size:0.82rem">
       ${_empreendimentos.map(e => `<option value="${e.id}" ${e.id === cur ? 'selected' : ''}>${esc(e.codigo)} — ${esc(e.nome)}${e.status === 'em_estudo' ? ' (estudo)' : ''}</option>`).join('')}
     </select>
-    <button id="emp-novo" style="width:100%;margin-top:6px;padding:6px;background:transparent;border:1px solid #334155;color:#94a3b8;border-radius:6px;font-size:0.72rem;cursor:pointer">➕ Novo (em estudo)</button>
+    <button id="emp-novo" style="width:100%;margin-top:6px;padding:6px;background:transparent;border:1px solid #413A2D;color:#A8A093;border-radius:6px;font-size:0.72rem;cursor:pointer">➕ Novo (em estudo)</button>
   `
   document.getElementById('emp-sel').addEventListener('change', async e => {
     const id = e.target.value
@@ -282,7 +282,7 @@ function flashMsg(msg) {
   if (!el) {
     el = document.createElement('div')
     el.id = 'flash-msg'
-    el.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#0f172a;color:#fff;padding:10px 18px;border-radius:8px;font-size:.85rem;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.3);transition:opacity .3s'
+    el.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#22201B;color:#F0EADD;padding:10px 18px;border-radius:8px;font-size:.85rem;z-index:1000;box-shadow:0 4px 12px rgba(34,31,26,.3);transition:opacity .3s'
     document.body.appendChild(el)
   }
   el.textContent = msg

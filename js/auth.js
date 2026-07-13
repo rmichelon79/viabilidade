@@ -33,50 +33,50 @@ function renderLogin(onSuccess) {
   const overlay = document.createElement('div')
   overlay.id = 'auth-overlay'
   overlay.style.cssText = `
-    position:fixed;inset:0;background:#0f172a;
+    position:fixed;inset:0;background:#F7F5F0;
     display:flex;align-items:center;justify-content:center;
-    z-index:9999;font-family:'Inter',sans-serif;
+    z-index:9999;font-family:'DM Sans',system-ui,sans-serif;
   `
   overlay.innerHTML = `
-    <div style="width:360px;padding:40px 36px;background:#1e293b;border-radius:14px;
-                box-shadow:0 20px 60px rgba(0,0,0,.5)">
-      <div style="text-align:center;margin-bottom:32px">
-        <div style="font-size:0.7rem;font-weight:600;letter-spacing:.15em;color:#475569;
+    <div style="width:360px;padding:38px 34px;background:#FFFFFF;border:1px solid #E4DED2;border-radius:16px;
+                box-shadow:0 1px 2px rgba(34,31,26,.04),0 18px 44px rgba(34,31,26,.10)">
+      <div style="text-align:center;margin-bottom:30px">
+        <div style="font-size:0.7rem;font-weight:600;letter-spacing:.15em;color:#7C7568;
                     text-transform:uppercase;margin-bottom:6px">Sopra Incorporações</div>
-        <div style="font-size:1.5rem;font-weight:700;color:#f8fafc">Viabilidade</div>
-        <div style="font-size:0.8rem;color:#64748b;margin-top:6px">Login único Sopra</div>
+        <div style="font-family:'DM Serif Display',Georgia,serif;font-size:1.7rem;color:#22201B">Viabilidade</div>
+        <div style="font-size:0.8rem;color:#7C7568;margin-top:6px">Login único Sopra</div>
       </div>
 
-      <div id="auth-error" style="display:none;background:#7f1d1d;color:#fca5a5;
+      <div id="auth-error" style="display:none;background:#FCEBEB;color:#A32D2D;
            padding:10px 14px;border-radius:8px;font-size:0.8rem;margin-bottom:16px;
-           border:1px solid #dc2626"></div>
+           border:1px solid #E9BCBB"></div>
 
       <div style="margin-bottom:16px">
-        <label style="font-size:0.75rem;color:#94a3b8;display:block;margin-bottom:6px">E-mail</label>
+        <label style="font-size:0.75rem;color:#7C7568;display:block;margin-bottom:6px">E-mail</label>
         <input id="auth-email" type="email" autocomplete="email"
-          style="width:100%;padding:10px 14px;background:#0f172a;border:1px solid #334155;
-                 border-radius:8px;color:#f8fafc;font-size:0.95rem;outline:none;
+          style="width:100%;padding:10px 14px;background:#F7F5F0;border:1px solid #D8D0C1;
+                 border-radius:8px;color:#22201B;font-size:0.95rem;outline:none;
                  transition:border .15s;box-sizing:border-box"
           placeholder="seu.nome@sopraincorporadora.com.br">
       </div>
 
       <div style="margin-bottom:16px">
-        <label style="font-size:0.75rem;color:#94a3b8;display:block;margin-bottom:6px">Senha</label>
+        <label style="font-size:0.75rem;color:#7C7568;display:block;margin-bottom:6px">Senha</label>
         <input id="auth-pwd" type="password" autocomplete="current-password"
-          style="width:100%;padding:10px 14px;background:#0f172a;border:1px solid #334155;
-                 border-radius:8px;color:#f8fafc;font-size:0.95rem;outline:none;
+          style="width:100%;padding:10px 14px;background:#F7F5F0;border:1px solid #D8D0C1;
+                 border-radius:8px;color:#22201B;font-size:0.95rem;outline:none;
                  transition:border .15s;box-sizing:border-box"
           placeholder="••••••••">
       </div>
 
       <button id="auth-btn"
-        style="width:100%;padding:11px;background:#2563eb;color:#fff;border:none;
-               border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer;
+        style="width:100%;padding:11px;background:#7AA436;color:#22201B;border:none;
+               border-radius:8px;font-size:0.9rem;font-weight:700;cursor:pointer;
                transition:background .15s">
         Entrar
       </button>
 
-      <div style="text-align:center;margin-top:20px;font-size:0.7rem;color:#334155">
+      <div style="text-align:center;margin-top:20px;font-size:0.7rem;color:#A8A093">
         🔒 Acesso protegido
       </div>
     </div>`
@@ -119,7 +119,7 @@ function renderLogin(onSuccess) {
   email.focus()
 
   for (const el of [email, input]) {
-    el.addEventListener('focus', () => el.style.borderColor = '#2563eb')
-    el.addEventListener('blur',  () => el.style.borderColor = '#334155')
+    el.addEventListener('focus', () => el.style.borderColor = '#7AA436')
+    el.addEventListener('blur',  () => el.style.borderColor = '#D8D0C1')
   }
 }

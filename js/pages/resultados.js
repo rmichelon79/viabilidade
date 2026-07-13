@@ -6,7 +6,7 @@ import { exportFluxoXLS } from '../xlsexport.js'
 
 const SC = ['otimista', 'base', 'pessimista']
 const LABELS = { otimista: 'Otimista', base: 'Base', pessimista: 'Pessimista' }
-const COLORS = { otimista: '#16a34a', base: '#2563eb', pessimista: '#dc2626' }
+const COLORS = { otimista: '#16a34a', base: '#7AA436', pessimista: '#dc2626' }
 
 let _chartAcum = null
 let _chartMensal = null
@@ -230,7 +230,7 @@ function renderChartMensal(r) {
     data: {
       labels,
       datasets: [
-        { label: 'Receita Líquida', data: r.recLiqMensal.slice(0, n), backgroundColor: '#2563eb55', borderColor: '#2563eb', borderWidth: 1 },
+        { label: 'Receita Líquida', data: r.recLiqMensal.slice(0, n), backgroundColor: '#7AA43655', borderColor: '#7AA436', borderWidth: 1 },
         { label: '(-) Custos', data: r.custos.slice(0, n).map(v => -v), backgroundColor: '#dc262655', borderColor: '#dc2626', borderWidth: 1 },
         { label: 'Financiamento', data: r.disb.slice(0, n).map((v, i) => v), backgroundColor: '#f59e0b55', borderColor: '#f59e0b', borderWidth: 1 },
       ],
