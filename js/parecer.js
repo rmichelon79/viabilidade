@@ -175,8 +175,7 @@ export function gerarParecer() {
 
   <div class="cap">
     <div>
-      <div class="brand">SOPRA</div>
-      <div class="muted">Incorporações</div>
+      <img src="https://rmichelon79.github.io/sopra-portal/sopra-logo.png" alt="Sopra Incorporadora" style="height:40px;width:auto;display:block">
     </div>
     <div style="text-align:right">
       <h1>Parecer de Viabilidade</h1>
