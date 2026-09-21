@@ -5,7 +5,7 @@ import { SBC } from './supabase.js'
 
 export async function logout() {
   try { await SBC.auth.signOut() } catch (_) {}
-  location.href = 'https://rmichelon79.github.io/sopra-portal/'
+  location.href = 'https://portal.sopraincorporadora.com.br/'
 }
 
 // Verifica se o usuário logado tem acesso ao app 'viabilidade'
@@ -41,7 +41,7 @@ function renderLogin(onSuccess) {
     <div style="width:360px;padding:38px 34px;background:#FFFFFF;border:1px solid #E4DED2;border-radius:16px;
                 box-shadow:0 1px 2px rgba(34,31,26,.04),0 18px 44px rgba(34,31,26,.10)">
       <div style="text-align:center;margin-bottom:30px">
-        <img src="https://rmichelon79.github.io/sopra-portal/sopra-logo.png" alt="Sopra Incorporadora"
+        <img src="https://portal.sopraincorporadora.com.br/sopra-logo.png" alt="Sopra Incorporadora"
              style="height:30px;width:auto;display:block;margin:0 auto 12px">
         <div style="font-family:'DM Serif Display',Georgia,serif;font-size:1.5rem;color:#22201B">Viabilidade</div>
         <div style="font-size:0.8rem;color:#7C7568;margin-top:6px">Login único Sopra</div>
